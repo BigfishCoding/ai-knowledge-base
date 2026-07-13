@@ -1,0 +1,15 @@
+{
+  "id": "kh_20260712_gh_002",
+  "title": "msitarzewski/agency-agents",
+  "source": "github_trending",
+  "source_url": "https://github.com/msitarzewski/agency-agents",
+  "author": "msitarzewski",
+  "summary": "包含 200+ 个 AI agent 角色提示词的开源库，覆盖前端开发、安全、营销、数据分析等 16 个专业领域。每个角色经过工程化设计，可直接导入 Claude Code、Cursor、Codex 等主流 AI 编码工具使用，大幅降低 prompt engineering 门槛。",
+  "tags": ["ai-agent", "agent-personas", "prompt-engineering", "claude-code", "cursor"],
+  "importance": 4,
+  "category": "project",
+  "language": "en",
+  "crawled_at": "2026-07-12T08:00:00Z",
+  "analyzed_at": "2026-07-12T08:05:00Z",
+  "status": "published"
+}

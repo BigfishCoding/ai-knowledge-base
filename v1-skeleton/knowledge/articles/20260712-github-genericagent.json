@@ -1,0 +1,15 @@
+{
+  "id": "kh_20260712_gh_013",
+  "title": "lsdefine/GenericAgent",
+  "source": "github_trending",
+  "source_url": "https://github.com/lsdefine/GenericAgent",
+  "author": "lsdefine",
+  "summary": "极简自进化 agent 框架，核心仅 3K 行代码 + 100 行 Agent Loop，token 消耗 <30K 上下文窗口为同类 1/6，arXiv 发布技术报告，9 个原子工具即可实现系统级控制。",
+  "tags": ["self-evolving", "autonomous-agent", "skill-tree", "token-efficient", "agent-framework"],
+  "importance": 4,
+  "category": "project",
+  "language": "en",
+  "crawled_at": "2026-07-12T15:00:00Z",
+  "analyzed_at": "2026-07-12T15:10:00Z",
+  "status": "published"
+}

@@ -1,0 +1,15 @@
+{
+  "id": "kh_20260712_gh_011",
+  "title": "anomalyco/opencode",
+  "source": "github_trending",
+  "source_url": "https://github.com/anomalyco/opencode",
+  "author": "anomalyco",
+  "summary": "开源 AI 编码 agent，176k stars，支持终端/桌面/IDE 多种界面，集成 Agent 编排、技能系统、MCP 协议三大能力，社区活跃度持续攀升。",
+  "tags": ["coding-agent", "developer-tools", "mcp", "cli", "open-source"],
+  "importance": 4,
+  "category": "project",
+  "language": "en",
+  "crawled_at": "2026-07-12T15:00:00Z",
+  "analyzed_at": "2026-07-12T15:10:00Z",
+  "status": "published"
+}

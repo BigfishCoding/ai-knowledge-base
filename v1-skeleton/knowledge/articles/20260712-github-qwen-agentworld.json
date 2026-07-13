@@ -1,0 +1,15 @@
+{
+  "id": "kh_20260712_gh_018",
+  "title": "QwenLM/Qwen-AgentWorld",
+  "source": "github_trending",
+  "source_url": "https://github.com/QwenLM/Qwen-AgentWorld",
+  "author": "QwenLM",
+  "summary": "通义千问原生语言世界模型（MoE 35B/3B 激活），覆盖 MCP/搜索/终端/SWE/Android/Web/OS 七域统一模拟，在 AgentWorldBench 上总分 58.71 超越 GPT-5.4 的 58.25 分。",
+  "tags": ["world-model", "agent-benchmark", "qwen", "moe", "llm"],
+  "importance": 4,
+  "category": "paper",
+  "language": "en",
+  "crawled_at": "2026-07-12T15:00:00Z",
+  "analyzed_at": "2026-07-12T15:10:00Z",
+  "status": "published"
+}

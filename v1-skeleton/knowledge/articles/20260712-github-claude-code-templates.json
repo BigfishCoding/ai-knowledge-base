@@ -1,0 +1,15 @@
+{
+  "id": "kh_20260712_gh_007",
+  "title": "davila7/claude-code-templates",
+  "source": "github_trending",
+  "source_url": "https://github.com/davila7/claude-code-templates",
+  "author": "davila7",
+  "summary": "面向 Claude Code 的配置管理与监控 CLI 工具，提供项目模板一键生成、token 用量追踪、响应延迟分析等实用功能。帮助用户了解使用成本、优化 prompt 设计，适合需要规范化使用 AI 编码 agent 的团队。",
+  "tags": ["claude-code", "monitoring", "cli", "templates", "developer-tools"],
+  "importance": 3,
+  "category": "tool",
+  "language": "en",
+  "crawled_at": "2026-07-12T08:00:00Z",
+  "analyzed_at": "2026-07-12T08:05:00Z",
+  "status": "published"
+}

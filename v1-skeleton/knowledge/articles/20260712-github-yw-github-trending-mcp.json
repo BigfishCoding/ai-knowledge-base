@@ -1,0 +1,15 @@
+{
+  "id": "kh_20260712_gh_022",
+  "title": "snyangwei2/yw-github-trending-mcp",
+  "source": "github_trending",
+  "source_url": "https://github.com/snyangwei2/yw-github-trending-mcp",
+  "author": "snyangwei2",
+  "summary": "关键词过滤型 GitHub 趋势发现 MCP 服务器，支持按 MCP/Agent/Skill 等关键词模糊匹配仓库名称和描述，返回详细的匹配位置标注，可指定语言和时间范围。",
+  "tags": ["mcp-server", "keyword-filter", "github-trending"],
+  "importance": 2,
+  "category": "tool",
+  "language": "en",
+  "crawled_at": "2026-07-12T15:00:00Z",
+  "analyzed_at": "2026-07-12T15:10:00Z",
+  "status": "published"
+}

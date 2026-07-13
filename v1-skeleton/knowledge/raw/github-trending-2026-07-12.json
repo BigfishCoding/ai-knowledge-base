@@ -1,0 +1,127 @@
+{
+  "source": "github_trending",
+  "skill": "github-trending",
+  "collected_at": "2026-07-12T15:00:00Z",
+  "items": [
+    {
+      "name": "NousResearch/hermes-agent",
+      "url": "https://github.com/NousResearch/hermes-agent",
+      "summary": "Hermes Agent 是自进化 AI agent 框架，通过闭环学习实现技能的自主创建与持续改进，上线即获 21.3 万星标，值得关注其自演进能力对 Agent 开发的范式影响。",
+      "stars": 213000,
+      "language": "Python",
+      "topics": ["ai-agent", "self-improving", "agent-framework", "llm"]
+    },
+    {
+      "name": "anomalyco/opencode",
+      "url": "https://github.com/anomalyco/opencode",
+      "summary": "OpenCode 是开源 AI 编码 agent，支持终端/桌面/IDE 多种界面，提供 Agent 编排、技能系统、MCP 集成等能力，社区活跃度持续攀升达 17.6 万星标。",
+      "stars": 176382,
+      "language": "TypeScript",
+      "topics": ["ai-coding-agent", "developer-tools", "cli", "open-source"]
+    },
+    {
+      "name": "JuliusBrussee/caveman",
+      "url": "https://github.com/JuliusBrussee/caveman",
+      "summary": "Caveman 是 Claude Code 技能插件，通过「原始人风格」提示词减少 65% token 消耗，本周新增 6707 星标，体现 LLM token 优化方向的创新思路。",
+      "stars": 87551,
+      "language": "TypeScript",
+      "topics": ["claude-code", "token-optimization", "skill", "prompt-engineering"]
+    },
+    {
+      "name": "addyosmani/agent-skills",
+      "url": "https://github.com/addyosmani/agent-skills",
+      "summary": "Agent Skills 是由 Chrome 团队 Addy Osmani 创建的生产级 AI agent 技能集，提供 24 个工程工作流覆盖 TDD/代码审查/安全加固，可直接嵌入主流 AI 编码工具。",
+      "stars": 77000,
+      "language": "Markdown",
+      "topics": ["agent-skills", "engineering-practices", "claude-code", "codex"]
+    },
+    {
+      "name": "asgeirtj/system_prompts_leaks",
+      "url": "https://github.com/asgeirtj/system_prompts_leaks",
+      "summary": "System Prompts Leaks 收集了 Claude/GPT-5.5/Gemini/Grok 等主流 AI 产品的内部系统提示词，本周登顶 GitHub 热门榜，对 prompt engineer 有直接参考价值。",
+      "stars": 55000,
+      "language": "Python",
+      "topics": ["system-prompts", "prompt-engineering", "llm", "transparency"]
+    },
+    {
+      "name": "lsdefine/GenericAgent",
+      "url": "https://github.com/lsdefine/GenericAgent",
+      "summary": "GenericAgent 是极简自进化 agent 框架，核心仅 3K 行代码 + 9 个原子工具即可实现系统级控制，已发布 arXiv 技术报告，token 消耗仅为同类 1/6。",
+      "stars": 13371,
+      "language": "Python",
+      "topics": ["self-evolving", "autonomous-agent", "skill-tree", "token-efficient"]
+    },
+    {
+      "name": "microsoft/agent-framework",
+      "url": "https://github.com/microsoft/agent-framework",
+      "summary": "Microsoft Agent Framework 是生产级多 Agent 编排框架，支持 Python/.NET 双语言，提供图工作流/人机协同/时间旅行调试等企业级特性，v1.11.0 于今日发布。",
+      "stars": 12006,
+      "language": "Python",
+      "topics": ["agent-framework", "multi-agent", "orchestration", "microsoft"]
+    },
+    {
+      "name": "vudovn/ag-kit",
+      "url": "https://github.com/vudovn/ag-kit",
+      "summary": "AG Kit 是 AI agent 模板工具包，内置 20 个 agent 角色和 45 个领域技能模块，通过协调者模式和上下文压缩技术降低 13-33% token 消耗，v2026.7.10 已发布。",
+      "stars": 7777,
+      "language": "TypeScript",
+      "topics": ["agent-templates", "skills", "workflows", "coordinator-mode"]
+    },
+    {
+      "name": "YeQing17-2026/OmniAgent",
+      "url": "https://github.com/YeQing17-2026/OmniAgent",
+      "summary": "OmniAgent 是全维度自进化 agent 框架，实现 Skill/Context/BrainModel 三维度自我进化，首创四层动态安全扫描防线，Hyper-Harness 执行支架保障复杂任务成功率。",
+      "stars": 2382,
+      "language": "Python",
+      "topics": ["self-evolving", "agent-framework", "security", "omnievolve"]
+    },
+    {
+      "name": "Robbyant/lingbot-world-v2",
+      "url": "https://github.com/robbyant/lingbot-world-v2",
+      "summary": "LingBot-World 2.0 是进阶世界模型，提出 agentic harness 概念让 pilot/director 双 agent 协作驱动角色行为与场景生成，支持 720p 60fps 实时视频流渲染。",
+      "stars": 801,
+      "language": "Python",
+      "topics": ["world-model", "agentic-harness", "multi-agent", "game-ai"]
+    },
+    {
+      "name": "QwenLM/Qwen-AgentWorld",
+      "url": "https://github.com/QwenLM/Qwen-AgentWorld",
+      "summary": "Qwen-AgentWorld 是通义千问发布的原生语言世界模型（MoE 35B/3B 激活），覆盖 MCP/搜索/终端/SWE/Android/Web/OS 七域统一模拟，AgentWorldBench 上超越 GPT-5.4。",
+      "stars": 798,
+      "language": "Python",
+      "topics": ["world-model", "agent-benchmark", "qwen", "moe"]
+    },
+    {
+      "name": "open-gitagent/gitagent",
+      "url": "https://github.com/open-gitagent/gitagent",
+      "summary": "GitAgent 是 git 原生的 AI agent 框架，将身份/规则/记忆/工具/技能全部版本化为 git 仓库文件，实现「Agent-as-Repo」范式，支持 OpenAI/Anthropic 等多模型。",
+      "stars": 596,
+      "language": "TypeScript",
+      "topics": ["git-native", "agent-framework", "version-control", "ai-agents"]
+    },
+    {
+      "name": "girlmoony/mcp_Trend_Radar",
+      "url": "https://github.com/girlmoony/mcp_Trend_Radar",
+      "summary": "Trend Radar 是 MCP 协议趋势雷达服务器，提供 GitHub/Hugging Face/X/Google News 四源趋势采集与自包含 HTML 仪表盘生成，零 JS 依赖，适合接入 AI 助手做趋势问答。",
+      "stars": 0,
+      "language": "Python",
+      "topics": ["mcp-server", "trending", "ai-news", "dashboard"]
+    },
+    {
+      "name": "hetaoBackend/mcp-github-trending",
+      "url": "https://github.com/hetaoBackend/mcp-github-trending",
+      "summary": "MCP GitHub Trending 服务器为 AI 应用提供实时访问 GitHub 热门仓库的能力，支持语言/时间/口语三种过滤维度，可直接集成 Claude Code 等 MCP 客户端。",
+      "stars": 53,
+      "language": "Python",
+      "topics": ["mcp-server", "github-trending", "ai-assistant"]
+    },
+    {
+      "name": "snyangwei2/yw-github-trending-mcp",
+      "url": "https://github.com/snyangwei2/yw-github-trending-mcp",
+      "summary": "YW GitHub Trending MCP 是关键词过滤型趋势发现工具，支持按 MCP/Agent/Skill 等关键词匹配仓库名称和描述，可指定语言和时间范围，返回详细的匹配位置标注。",
+      "stars": 0,
+      "language": "Python",
+      "topics": ["mcp-server", "github-trending", "keyword-filter"]
+    }
+  ]
+}

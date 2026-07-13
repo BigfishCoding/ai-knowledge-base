@@ -1,0 +1,15 @@
+{
+  "id": "kh_20260712_gh_001",
+  "title": "NousResearch/hermes-agent",
+  "source": "github_trending",
+  "source_url": "https://github.com/NousResearch/hermes-agent",
+  "author": "NousResearch",
+  "summary": "自进化 AI agent 框架，通过闭环学习机制实现技能的自主创建与持续改进。支持多 LLM 提供商和无服务器架构部署，为构建具备自我迭代能力的 AI Agent 系统提供了全新范式。上线即获 21.3 万星标，是该类别最具影响力的新兴项目之一。",
+  "tags": ["ai-agent", "self-improving", "agent-framework", "llm", "open-source"],
+  "importance": 5,
+  "category": "project",
+  "language": "en",
+  "crawled_at": "2026-07-12T08:00:00Z",
+  "analyzed_at": "2026-07-12T08:05:00Z",
+  "status": "published"
+}

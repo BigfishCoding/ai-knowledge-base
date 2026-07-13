@@ -1,0 +1,15 @@
+{
+  "id": "kh_20260712_gh_006",
+  "title": "QwenLM/qwen-code",
+  "source": "github_trending",
+  "source_url": "https://github.com/QwenLM/qwen-code",
+  "author": "QwenLM",
+  "summary": "通义千问推出的终端 AI 编码 agent，运行在 CLI 环境中，支持代码理解与编辑、Git 操作自动化、多文件重构和工作流编排。核心优势在于可切换不同后端模型（Qwen、GPT、Claude 等），且具备出色的中文理解与生成能力。",
+  "tags": ["coding-agent", "cli", "qwen", "ai-code-assistant", "chinese-llm"],
+  "importance": 4,
+  "category": "tool",
+  "language": "en",
+  "crawled_at": "2026-07-12T08:00:00Z",
+  "analyzed_at": "2026-07-12T08:05:00Z",
+  "status": "published"
+}

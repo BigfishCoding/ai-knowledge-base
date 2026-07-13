@@ -1,0 +1,15 @@
+{
+  "id": "kh_20260712_gh_017",
+  "title": "Robbyant/lingbot-world-v2",
+  "source": "github_trending",
+  "source_url": "https://github.com/robbyant/lingbot-world-v2",
+  "author": "robbyant",
+  "summary": "进阶世界模型，提出 agentic harness 概念，pilot/director 双 agent 协作驱动角色行为与场景生成，14B 参数支持 720p 60fps 实时视频流渲染，因果预训练实现无界交互时域。",
+  "tags": ["world-model", "agentic-harness", "game-ai", "multi-agent"],
+  "importance": 3,
+  "category": "paper",
+  "language": "en",
+  "crawled_at": "2026-07-12T15:00:00Z",
+  "analyzed_at": "2026-07-12T15:10:00Z",
+  "status": "published"
+}

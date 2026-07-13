@@ -1,0 +1,15 @@
+{
+  "id": "kh_20260712_gh_020",
+  "title": "girlmoony/mcp_Trend_Radar",
+  "source": "github_trending",
+  "source_url": "https://github.com/girlmoony/mcp_Trend_Radar",
+  "author": "girlmoony",
+  "summary": "MCP 协议趋势雷达服务器，聚合 GitHub/Hugging Face/X/Google News 四源趋势数据，生成零 JS 依赖的自包含 HTML 仪表盘，可作为 MCP 服务器直接接入 AI 助手。",
+  "tags": ["mcp-server", "trend-aggregation", "dashboard", "ai-news"],
+  "importance": 3,
+  "category": "tool",
+  "language": "en",
+  "crawled_at": "2026-07-12T15:00:00Z",
+  "analyzed_at": "2026-07-12T15:10:00Z",
+  "status": "published"
+}

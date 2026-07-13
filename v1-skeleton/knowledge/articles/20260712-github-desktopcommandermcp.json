@@ -1,0 +1,15 @@
+{
+  "id": "kh_20260712_gh_010",
+  "title": "wonderwhy-er/DesktopCommanderMCP",
+  "source": "github_trending",
+  "source_url": "https://github.com/wonderwhy-er/DesktopCommanderMCP",
+  "author": "wonderwhy-er",
+  "summary": "为 Claude 桌面客户端开发的 MCP 服务器插件，赋予 Claude 终端命令执行、文件系统递归搜索和差异文件编辑三大能力，大幅扩展了 Claude 的工具使用范围。上线后增速迅猛，单日涨星超 900，社区热度极高。",
+  "tags": ["mcp", "claude", "terminal-control", "file-system", "developer-tools"],
+  "importance": 4,
+  "category": "tool",
+  "language": "en",
+  "crawled_at": "2026-07-12T08:00:00Z",
+  "analyzed_at": "2026-07-12T08:05:00Z",
+  "status": "published"
+}

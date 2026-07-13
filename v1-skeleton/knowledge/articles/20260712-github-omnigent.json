@@ -1,0 +1,15 @@
+{
+  "id": "kh_20260712_gh_009",
+  "title": "omnigent-ai/omnigent",
+  "source": "github_trending",
+  "source_url": "https://github.com/omnigent-ai/omnigent",
+  "author": "omnigent-ai",
+  "summary": "开源 AI agent 元编排框架，充当 Claude Code、Codex、Cursor 等多个编码 agent 的统一调度层。支持策略驱动的任务分配、执行监控和结果汇总，适合需要多 agent 协作完成复杂开发任务的团队探索使用。",
+  "tags": ["ai-agent", "orchestration", "multi-agent", "meta-harness", "open-source"],
+  "importance": 3,
+  "category": "project",
+  "language": "en",
+  "crawled_at": "2026-07-12T08:00:00Z",
+  "analyzed_at": "2026-07-12T08:05:00Z",
+  "status": "published"
+}

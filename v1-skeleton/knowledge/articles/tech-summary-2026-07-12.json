@@ -1,0 +1,209 @@
+{
+  "source": "knowledge/raw/github-trending-2026-07-12.json",
+  "skill": "tech-summary",
+  "analyzed_at": "2026-07-12T15:10:00Z",
+  "items": [
+    {
+      "name": "NousResearch/hermes-agent",
+      "url": "https://github.com/NousResearch/hermes-agent",
+      "summary": "自进化 AI agent 框架，闭环学习自主创建技能",
+      "highlights": [
+        "上线即获 213k stars，为同类项目最高",
+        "闭环学习机制实现技能自主创建与持续改进",
+        "支持多 LLM 提供商和无服务器架构部署"
+      ],
+      "score": 9,
+      "score_reason": "自进化 Agent 范式开创者，213k stars 验证其行业影响力，闭环节能自主创建技能的能力对 Agent 开发模式有范式级改变",
+      "tags": ["self-improving", "agent-framework", "closed-loop-learning", "llm"]
+    },
+    {
+      "name": "anomalyco/opencode",
+      "url": "https://github.com/anomalyco/opencode",
+      "summary": "开源 AI 编码 agent，支持多界面多模型",
+      "highlights": [
+        "176k stars，社区活跃度持续攀升",
+        "集成 Agent 编排、技能系统、MCP 协议三大能力",
+        "支持终端/桌面/IDE 三种使用界面"
+      ],
+      "score": 8,
+      "score_reason": "生产级 AI 编码 agent，176k stars 验证其价值，MCP/技能/编排三位一体的架构设计合理",
+      "tags": ["coding-agent", "developer-tools", "mcp", "cli"]
+    },
+    {
+      "name": "JuliusBrussee/caveman",
+      "url": "https://github.com/JuliusBrussee/caveman",
+      "summary": "Claude Code 技能，减少 65% token 消耗",
+      "highlights": [
+        "通过精简提示风格减少 65% token 消耗",
+        "本周新增 6707 stars，周增速 8.3%",
+        "87k stars 验证 LLM token 优化方向的巨大需求"
+      ],
+      "score": 7,
+      "score_reason": "极简风格的 token 优化方案，87.5k stars 和高周增速验证了市场需求，对 LLM 成本敏感场景有直接帮助",
+      "tags": ["token-optimization", "claude-code", "prompt-engineering", "cost-saving"]
+    },
+    {
+      "name": "addyosmani/agent-skills",
+      "url": "https://github.com/addyosmani/agent-skills",
+      "summary": "生产级 AI agent 技能集，24 个工程流程",
+      "highlights": [
+        "覆盖 TDD/代码审查/安全加固/性能优化等 24 个场景",
+        "由 Chrome 团队 Addy Osmani 创建维护",
+        "可直接嵌入 Claude Code、Codex 等工具使用"
+      ],
+      "score": 7,
+      "score_reason": "高质量可复用技能库，77k stars 验证其价值，工程化水平高但属于现有工具的补充而非原创框架",
+      "tags": ["agent-skills", "engineering-practices", "workflow", "tdd"]
+    },
+    {
+      "name": "asgeirtj/system_prompts_leaks",
+      "url": "https://github.com/asgeirtj/system_prompts_leaks",
+      "summary": "主流 AI 系统提示词收集，透明化参考",
+      "highlights": [
+        "覆盖 Claude/GPT-5.5/Gemini/Grok/Cursor 等产品",
+        "本周登顶 GitHub 热门榜凸显行业需求",
+        "揭示了各产品角色设定/安全约束/输出控制设计"
+      ],
+      "score": 6,
+      "score_reason": "对 prompt engineer 有直接参考价值，但项目本质是信息收集而非技术创新，55k stars 反映文档需求而非产品价值",
+      "tags": ["system-prompts", "prompt-engineering", "llm-transparency"]
+    },
+    {
+      "name": "lsdefine/GenericAgent",
+      "url": "https://github.com/lsdefine/GenericAgent",
+      "summary": "3K 行极简自进化 agent，<30K 上下文窗口",
+      "highlights": [
+        "核心仅 3K 行代码 + 100 行 Agent Loop",
+        "token 消耗 <30K 上下文窗口，为同类 1/6",
+        "arXiv 发布技术报告 (2604.17091)"
+      ],
+      "score": 8,
+      "score_reason": "极简架构理念与自进化能力的结合令人印象深刻，3K 行实现系统级控制的技术效率值得关注，arXiv 论文增加了学术可信度",
+      "tags": ["self-evolving", "minimal-architecture", "token-efficient", "autonomous"]
+    },
+    {
+      "name": "microsoft/agent-framework",
+      "url": "https://github.com/microsoft/agent-framework",
+      "summary": "微软多 Agent 编排框架，生产级双语言",
+      "highlights": [
+        "支持 Python/.NET 双语言，170 贡献者",
+        "图工作流/人机协同/时间旅行调试等企业特性",
+        "v1.11.0 于 2026-07-10 发布，101 个 release 迭代成熟"
+      ],
+      "score": 8,
+      "score_reason": "微软背书的生产级框架，101 个 release 和 170 贡献者体现成熟度，图工作流编排和时间旅行调试功能对企业场景有直接帮助",
+      "tags": ["multi-agent", "orchestration", "enterprise", "microsoft"]
+    },
+    {
+      "name": "vudovn/ag-kit",
+      "url": "https://github.com/vudovn/ag-kit",
+      "summary": "AI agent 模板包，20 角色 45 技能降本 13-33%",
+      "highlights": [
+        "20 个 agent 角色 + 45 个领域技能 + 13 个工作流",
+        "协调者模式 + 上下文压缩降低 token 消耗 13-33%",
+        "v2026.7.10 持续迭代"
+      ],
+      "score": 7,
+      "score_reason": "实用的模板工具包，13-33% token 优化有数据支撑，20 角色即开即用降低开发门槛，但本质是工程集成而非核心创新",
+      "tags": ["agent-templates", "skills", "coordinator-mode", "context-compression"]
+    },
+    {
+      "name": "YeQing17-2026/OmniAgent",
+      "url": "https://github.com/YeQing17-2026/OmniAgent",
+      "summary": "全维度自进化 agent，四层动态安全防线",
+      "highlights": [
+        "Skill/Context/BrainModel 三维自我进化",
+        "首创四层动态安全扫描（LLM→策略→审批→沙箱）",
+        "Hyper-Harness 执行支架保障复杂任务成功率"
+      ],
+      "score": 6,
+      "score_reason": "全维度自进化概念完整，四层安全防线是该领域创新，但 2.3k stars 说明仍在早期验证阶段，安全能力有待社区检验",
+      "tags": ["self-evolving", "security", "agent-framework", "hyper-harness"]
+    },
+    {
+      "name": "Robbyant/lingbot-world-v2",
+      "url": "https://github.com/robbyant/lingbot-world-v2",
+      "summary": "世界模型+agentic harness，720p 60fps 渲染",
+      "highlights": [
+        "pilot/director 双 agent 协作驱动角色行为与场景生成",
+        "14B 模型支持 720p 60fps 实时视频流渲染",
+        "因果预训练范式实现无界交互时域"
+      ],
+      "score": 5,
+      "score_reason": "agentic harness 概念有创新性（pilot/director 架构），但 801 stars、技术报告刚发布，尚处早期研究阶段",
+      "tags": ["world-model", "agentic-harness", "game-ai", "multi-agent"]
+    },
+    {
+      "name": "QwenLM/Qwen-AgentWorld",
+      "url": "https://github.com/QwenLM/Qwen-AgentWorld",
+      "summary": "原生语言世界模型，七域模拟超越 GPT-5.4",
+      "highlights": [
+        "AgentWorldBench 总分 58.71 超越 GPT-5.4 的 58.25",
+        "MoE 架构 35B 总参/3B 激活，覆盖 MCP/SWE/OS 等七域",
+        "CPT+SFT+RL 三阶段训练，基于 10M+ 真实交互轨迹"
+      ],
+      "score": 8,
+      "score_reason": "开源世界模型在 AgentWorldBench 上超越 GPT-5.4 是重要里程碑，七域统一模拟对 Agent 领域有直接推动作用",
+      "tags": ["world-model", "agent-benchmark", "qwen", "moe"]
+    },
+    {
+      "name": "open-gitagent/gitagent",
+      "url": "https://github.com/open-gitagent/gitagent",
+      "summary": "Git 原生 AI agent，一切皆 git 仓库文件",
+      "highlights": [
+        "身份/规则/记忆/工具/技能全部 git 版本化管理",
+        "Agent-as-Repo 范式创新",
+        "支持 OpenAI/Anthropic 等多 LLM 提供商"
+      ],
+      "score": 5,
+      "score_reason": "Agent-as-Repo 概念有创新性，但 596 stars 说明在概念验证阶段，git 原生范式能否被广泛接受有待验证",
+      "tags": ["git-native", "agent-framework", "version-control"]
+    },
+    {
+      "name": "girlmoony/mcp_Trend_Radar",
+      "url": "https://github.com/girlmoony/mcp_Trend_Radar",
+      "summary": "MCP 趋势雷达，四源采集 HTML 仪表盘",
+      "highlights": [
+        "GitHub/HF/X/Google News 四源趋势聚合",
+        "零 JS 依赖自包含 HTML 仪表盘生成",
+        "作为 MCP 服务器可直接接入 AI 助手"
+      ],
+      "score": 5,
+      "score_reason": "实用性不错的多源趋势聚合 MCP 服务器，但本质上是对现有 API 的封装整合，无核心技术突破",
+      "tags": ["mcp-server", "trend-aggregation", "dashboard"]
+    },
+    {
+      "name": "hetaoBackend/mcp-github-trending",
+      "url": "https://github.com/hetaoBackend/mcp-github-trending",
+      "summary": "MCP GitHub 热门仓库查询服务器",
+      "highlights": [
+        "支持语言/时间/口语三种维度过滤",
+        "可直接集成 Claude Code 等 MCP 客户端"
+      ],
+      "score": 4,
+      "score_reason": "基本功能的 MCP 封装，53 stars 说明用户需求低，同类工具竞争激烈且功能趋同",
+      "tags": ["mcp-server", "github-trending"]
+    },
+    {
+      "name": "snyangwei2/yw-github-trending-mcp",
+      "url": "https://github.com/snyangwei2/yw-github-trending-mcp",
+      "summary": "关键词过滤型 GitHub 趋势发现 MCP",
+      "highlights": [
+        "支持按 MCP/Agent/Skill 等关键词模糊匹配",
+        "返回详细的匹配位置标注"
+      ],
+      "score": 4,
+      "score_reason": "关键词过滤功能单薄，0 stars 说明几乎无用户采用，且与 multiple MCP 工具功能重叠",
+      "tags": ["mcp-server", "keyword-filter", "github-trending"]
+    }
+  ],
+  "trends": {
+    "topics": ["自进化 Agent 框架", "Agent 编排与多 Agent", "MCP 协议工具生态", "世界模型", "token 优化"],
+    "emerging": [
+      "Agent-as-Repo（git 版本化 agent 身份与记忆）",
+      "agentic harness（pilot/director 双 agent 协作驱动）",
+      "原生语言世界模型（从 CPT 阶段即建模环境）"
+    ],
+    "note": "本周最显著趋势是自进化 Agent 框架集中爆发（Hermes/GenericAgent/OmniAgent），同时 MCP 生态工具持续涌现（本周 4 个 MCP 相关项目）。世界模型方面 Qwen-AgentWorld 超越 GPT-5.4 是重要信号。另有一批新兴概念处于早期验证阶段（Agent-as-Repo、agentic harness），值得持续跟踪其进展。"
+  }
+}

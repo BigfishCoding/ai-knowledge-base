@@ -1,0 +1,15 @@
+{
+  "id": "kh_20260712_gh_021",
+  "title": "hetaoBackend/mcp-github-trending",
+  "source": "github_trending",
+  "source_url": "https://github.com/hetaoBackend/mcp-github-trending",
+  "author": "hetaoBackend",
+  "summary": "MCP GitHub 热门仓库查询服务器，支持语言/时间/口语三种过滤维度，提供结构化的仓库热度数据，可直接集成 Claude Code 等 MCP 客户端使用。",
+  "tags": ["mcp-server", "github-trending", "ai-assistant"],
+  "importance": 2,
+  "category": "tool",
+  "language": "en",
+  "crawled_at": "2026-07-12T15:00:00Z",
+  "analyzed_at": "2026-07-12T15:10:00Z",
+  "status": "published"
+}

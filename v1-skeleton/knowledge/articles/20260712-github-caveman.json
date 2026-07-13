@@ -1,0 +1,15 @@
+{
+  "id": "kh_20260712_gh_012",
+  "title": "JuliusBrussee/caveman",
+  "source": "github_trending",
+  "source_url": "https://github.com/JuliusBrussee/caveman",
+  "author": "JuliusBrussee",
+  "summary": "Claude Code 技能插件，通过精简提示风格减少 65% token 消耗，87k stars，本周新增 6707 stars 增速 8.3%，满足 LLM token 优化方向的巨大需求。",
+  "tags": ["token-optimization", "claude-code", "prompt-engineering", "cost-saving"],
+  "importance": 4,
+  "category": "tool",
+  "language": "en",
+  "crawled_at": "2026-07-12T15:00:00Z",
+  "analyzed_at": "2026-07-12T15:10:00Z",
+  "status": "published"
+}

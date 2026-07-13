@@ -1,0 +1,15 @@
+{
+  "id": "kh_20260712_gh_015",
+  "title": "vudovn/ag-kit",
+  "source": "github_trending",
+  "source_url": "https://github.com/vudovn/ag-kit",
+  "author": "vudovn",
+  "summary": "AI agent 模板工具包，内置 20 个 agent 角色、45 个领域技能和 13 个工作流，协调者模式+上下文压缩降低 token 消耗 13-33%，v2026.7.10 持续迭代。",
+  "tags": ["agent-templates", "skills", "workflows", "coordinator-mode", "context-compression"],
+  "importance": 4,
+  "category": "tool",
+  "language": "en",
+  "crawled_at": "2026-07-12T15:00:00Z",
+  "analyzed_at": "2026-07-12T15:10:00Z",
+  "status": "published"
+}

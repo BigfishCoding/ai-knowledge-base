@@ -1,0 +1,15 @@
+{
+  "id": "kh_20260712_gh_005",
+  "title": "usestrix/strix",
+  "source": "github_trending",
+  "source_url": "https://github.com/usestrix/strix",
+  "author": "usestrix",
+  "summary": "开源 AI 驱动的渗透测试框架，可自主发现 Web 应用中的安全漏洞（XSS、SQL 注入、SSRF 等），确认漏洞后自动生成修复补丁并以 PR 形式提交。支持接入多种 LLM 后端，实现从漏洞发现到修复的全流程自动化。",
+  "tags": ["ai-security", "penetration-testing", "security-tools", "devsecops", "automation"],
+  "importance": 4,
+  "category": "project",
+  "language": "en",
+  "crawled_at": "2026-07-12T08:00:00Z",
+  "analyzed_at": "2026-07-12T08:05:00Z",
+  "status": "published"
+}

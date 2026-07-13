@@ -1,0 +1,15 @@
+{
+  "id": "kh_20260712_gh_016",
+  "title": "YeQing17-2026/OmniAgent",
+  "source": "github_trending",
+  "source_url": "https://github.com/YeQing17-2026/OmniAgent",
+  "author": "YeQing17-2026",
+  "summary": "全维度自进化 agent 框架，实现 Skill/Context/BrainModel 三维自我进化，首创四层动态安全扫描防线（LLM→策略→审批→沙箱），Hyper-Harness 执行支架保障复杂任务成功率。",
+  "tags": ["self-evolving", "security", "agent-framework", "hyper-harness", "omnievolve"],
+  "importance": 3,
+  "category": "project",
+  "language": "en",
+  "crawled_at": "2026-07-12T15:00:00Z",
+  "analyzed_at": "2026-07-12T15:10:00Z",
+  "status": "published"
+}

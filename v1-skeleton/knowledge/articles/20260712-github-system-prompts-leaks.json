@@ -1,0 +1,15 @@
+{
+  "id": "kh_20260712_gh_004",
+  "title": "asgeirtj/system_prompts_leaks",
+  "source": "github_trending",
+  "source_url": "https://github.com/asgeirtj/system_prompts_leaks",
+  "author": "asgeirtj",
+  "summary": "收集并提取了 Claude、GPT-5.5、Gemini、Grok、Cursor 等主流 AI 产品的内部系统提示词，揭示了各产品在角色设定、安全约束、输出格式控制等方面的设计思路。对 prompt engineer 和 LLM 应用开发者有直接参考价值。",
+  "tags": ["system-prompts", "prompt-engineering", "llm", "transparency"],
+  "importance": 4,
+  "category": "project",
+  "language": "en",
+  "crawled_at": "2026-07-12T08:00:00Z",
+  "analyzed_at": "2026-07-12T08:05:00Z",
+  "status": "published"
+}

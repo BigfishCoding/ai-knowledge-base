@@ -1,0 +1,15 @@
+{
+  "id": "kh_20260712_gh_019",
+  "title": "open-gitagent/gitagent",
+  "source": "github_trending",
+  "source_url": "https://github.com/open-gitagent/gitagent",
+  "author": "open-gitagent",
+  "summary": "Git 原生 AI agent 框架，将身份/规则/记忆/工具/技能全部版本化为 git 仓库文件，实现 Agent-as-Repo 范式，支持 OpenAI/Anthropic 等多 LLM 提供商。",
+  "tags": ["git-native", "agent-framework", "version-control", "ai-agents"],
+  "importance": 3,
+  "category": "project",
+  "language": "en",
+  "crawled_at": "2026-07-12T15:00:00Z",
+  "analyzed_at": "2026-07-12T15:10:00Z",
+  "status": "published"
+}

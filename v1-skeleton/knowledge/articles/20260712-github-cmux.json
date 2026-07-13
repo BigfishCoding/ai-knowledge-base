@@ -1,0 +1,15 @@
+{
+  "id": "kh_20260712_gh_008",
+  "title": "manaflow-ai/cmux",
+  "source": "github_trending",
+  "source_url": "https://github.com/manaflow-ai/cmux",
+  "author": "manaflow-ai",
+  "summary": "基于 Ghostty 引擎的 macOS 终端模拟器，专为同时管理多个 AI 编码 agent（Claude Code、Codex、Cursor 等）设计。提供会话管理、多面板布局、agent 输出隔离等功能，解决多 agent 协作时的终端混乱问题。",
+  "tags": ["ai-agent", "terminal", "macos", "agent-orchestration", "multitasking"],
+  "importance": 4,
+  "category": "tool",
+  "language": "en",
+  "crawled_at": "2026-07-12T08:00:00Z",
+  "analyzed_at": "2026-07-12T08:05:00Z",
+  "status": "published"
+}
