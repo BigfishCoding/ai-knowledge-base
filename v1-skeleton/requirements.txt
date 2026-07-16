@@ -1,0 +1,15 @@
+# HTTP 请求
+requests>=2.31.0
+
+# LLM 调用（DeepSeek / GLM 兼容 OpenAI SDK）
+openai>=1.0.0
+
+# Agent 工作流编排
+langgraph>=0.2.0
+langchain>=0.3.0
+
+# 数据校验
+pydantic>=2.0.0
+
+# 日志增强（可选）
+python-dotenv>=1.0.0

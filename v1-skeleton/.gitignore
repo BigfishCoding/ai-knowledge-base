@@ -1,0 +1,29 @@
+# 环境变量（含敏感凭据）
+.env
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+
+# 日志
+logs/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+Thumbs.db
+.DS_Store
+desktop.ini
+
+# OpenCode 本地缓存
+.opencode/cache/
