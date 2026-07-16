@@ -23,9 +23,26 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).parent.resolve()
 KNOWLEDGE_DIR = PROJECT_ROOT / "knowledge"
 LOGS_DIR = PROJECT_ROOT / "logs"
-RAW_DIR = KNOWLEDGE_DIR / "raw"
-ARTICLES_DIR = KNOWLEDGE_DIR / "articles"
-REPORTS_DIR = KNOWLEDGE_DIR / "reports"
+
+
+def get_date_str() -> str:
+    """返回当前日期字符串 YYYY-MM-DD."""
+    return datetime.now().strftime("%Y-%m-%d")
+
+
+def get_raw_dir() -> Path:
+    """返回当日 raw 目录路径."""
+    return KNOWLEDGE_DIR / "raw" / get_date_str()
+
+
+def get_articles_dir() -> Path:
+    """返回当日 articles 目录路径."""
+    return KNOWLEDGE_DIR / "articles" / get_date_str()
+
+
+def get_reports_dir() -> Path:
+    """返回当日 reports 目录路径."""
+    return KNOWLEDGE_DIR / "reports" / get_date_str()
 
 # ── Pipeline 步骤定义 ───────────────────────────────────────────────────────
 PIPELINE_STEPS = [
@@ -85,9 +102,10 @@ def check_environment() -> bool:
     if not os.environ.get("LLM_API_KEY"):
         errors.append("LLM_API_KEY 未设置，请在 .env 中配置")
 
-    # 检查必要目录
-    for d in [RAW_DIR, ARTICLES_DIR, REPORTS_DIR]:
+    # 检查并创建当日日期层级目录
+    for d in [get_raw_dir(), get_articles_dir(), get_reports_dir()]:
         d.mkdir(parents=True, exist_ok=True)
+        logger.info(f"输出目录就绪: {d}")
 
     if errors:
         for e in errors:

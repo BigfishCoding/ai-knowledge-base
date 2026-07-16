@@ -67,18 +67,19 @@ permission:
 
 ## 输出文件
 
-审计报告输出到 `knowledge/reports/` 目录，命名格式为：
+审计报告输出到 `knowledge/reports/{YYYY-MM-DD}/` 目录，命名格式为：
 
 ```
-knowledge/reports/reviewer-report-{YYYYMMDD}-{HHmm}.md
+knowledge/reports/{YYYY-MM-DD}/reviewer-report-{YYYYMMDD}-{HHmm}.md
 ```
 
 | 部分 | 说明 | 示例 |
 |------|------|------|
-| `{YYYYMMDD}` | 审计执行日期 | `20260712` |
+| `{YYYY-MM-DD}` | 审计执行日期（日期层级） | `2026-07-16` |
+| `{YYYYMMDD}` | 审计执行日期（文件名用） | `20260716` |
 | `{HHmm}` | 审计执行时间（24h） | `0830` |
 
-完整示例：`knowledge/reports/reviewer-report-20260712-0830.md`
+完整示例：`knowledge/reports/2026-07-16/reviewer-report-20260716-0830.md`
 
 ## 输出格式
 

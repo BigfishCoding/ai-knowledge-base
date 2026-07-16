@@ -34,9 +34,26 @@ permission:
 
 5. **建议标签**：给出 2-5 个标签（如 `llm`、`fine-tune`、`open-source`、`benchmark`），全部使用小写英文
 
+## 输出文件
+
+将分析结果写入 `knowledge/articles/{YYYY-MM-DD}/` 目录，文件命名格式：
+
+```
+knowledge/articles/{YYYY-MM-DD}/{date}-{source}-{slug}.json
+```
+
+| 部分 | 说明 | 示例 |
+|------|------|------|
+| `{YYYY-MM-DD}` | 分析日期 | `2026-07-16` |
+| `{date}` | 日期（不含分隔符） | `20260716` |
+| `{source}` | 数据源 | `github` / `hackernews` |
+| `{slug}` | 标题的 URL 友好简写 | `openai-gpt-5` |
+
+完整示例：`knowledge/articles/2026-07-16/20260716-github-openai-gpt-5.json`
+
 ## 输出格式
 
-返回一个 JSON 数组，每条格式如下：
+文件内容为 JSON 数组，每条格式如下：
 
 ```json
 {

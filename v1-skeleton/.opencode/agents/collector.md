@@ -26,9 +26,25 @@ permission:
 3. **初步筛选**：仅保留与 AI/LLM/Agent 技术相关的条目（通过标题和描述关键词判断）
 4. **排序**：按热度（stars / points / score）降序排列
 
+## 输出文件
+
+将采集结果写入 `knowledge/raw/{YYYY-MM-DD}/` 目录，文件命名格式：
+
+```
+knowledge/raw/{YYYY-MM-DD}/{source}-{date}.json
+```
+
+| 部分 | 说明 | 示例 |
+|------|------|------|
+| `{YYYY-MM-DD}` | 采集日期 | `2026-07-16` |
+| `{source}` | 数据源 | `github-trending` / `hacker-news` |
+| `{date}` | 日期（不含分隔符） | `20260716` |
+
+完整示例：`knowledge/raw/2026-07-16/github-trending-20260716.json`
+
 ## 输出格式
 
-返回一个 JSON 数组，每条格式如下：
+文件内容为 JSON 数组，每条格式如下：
 
 ```json
 {

@@ -29,17 +29,28 @@ permission:
 
 ## 文件命名规范
 
+### 知识条目 JSON
+
 ```
-knowledge/articles/{date}-{source}-{slug}.json
+knowledge/articles/{YYYY-MM-DD}/{date}-{source}-{slug}.json
 ```
 
 | 部分 | 说明 | 示例 |
 |------|------|------|
-| `{date}` | 采集日期，格式 `YYYYMMDD` | `20260712` |
+| `{YYYY-MM-DD}` | 日期层级 | `2026-07-16` |
+| `{date}` | 采集日期，格式 `YYYYMMDD` | `20260716` |
 | `{source}` | 数据源简称 | `github` / `hackernews` |
 | `{slug}` | 标题的 URL 友好简写 | `openai-gpt-5` |
 
-完整示例：`knowledge/articles/20260712-github-openai-gpt-5.json`
+完整示例：`knowledge/articles/2026-07-16/20260716-github-openai-gpt-5.json`
+
+### 知识日报 Markdown
+
+```
+knowledge/articles/{YYYY-MM-DD}/daily-report-{YYYY-MM-DD}.md
+```
+
+完整示例：`knowledge/articles/2026-07-16/daily-report-2026-07-16.md`
 
 ## 输出格式
 
