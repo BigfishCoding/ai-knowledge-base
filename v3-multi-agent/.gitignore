@@ -1,0 +1,12 @@
+# 密钥 / 环境变量，禁止提交
+.env
+
+# 知识库数据（红线：禁止提交）
+knowledge/
+
+# Python 缓存
+__pycache__/
+*.pyc
+
+# 日志
+logs/
