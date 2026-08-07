@@ -124,7 +124,7 @@ def _llm_classify(query: str) -> str:
     prompt = f"用户输入：{query}\n请判断其意图。"
 
     try:
-        data = chat_json(prompt, system=system)
+        data, _ = chat_json(prompt, system=system)
         intent = data.get("intent")
     except (ValueError, RuntimeError) as exc:
         logger.warning("LLM 意图分类失败, 回退到 general_chat: %s", exc)

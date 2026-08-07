@@ -1,0 +1,157 @@
+"""LangGraph 工作流组装：StateGraph + 条件边。
+
+将 :mod:`workflows.nodes` 的 5 个节点组装为线性 + 审核回环的图：
+
+::
+
+    collect → analyze → organize → review ──passed=True──→ save → END
+                                  │
+                                  └──passed=False──→ organize（回炉修正）
+
+用法:
+    python workflows/graph.py
+"""
+
+import logging
+import sys
+from pathlib import Path
+from typing import Any
+
+# 项目根目录注入 sys.path，保证以脚本方式运行时 workflows 包可导入
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+from langgraph.graph import END, StateGraph
+
+from workflows import nodes
+from workflows.state import KBState, new_state
+
+logger = logging.getLogger(__name__)
+
+# ── 节点名常量 ────────────────────────────────────────────────────────────
+
+NODE_COLLECT = "collect"
+NODE_ANALYZE = "analyze"
+NODE_ORGANIZE = "organize"
+NODE_REVIEW = "review"
+NODE_SAVE = "save"
+
+
+# ── 条件路由 ──────────────────────────────────────────────────────────────
+
+
+def _review_router(state: KBState) -> str:
+    """审核后的条件分支：通过则保存，否则回整理节点修正。
+
+    Args:
+        state: 当前全局状态。
+
+    Returns:
+        目标节点名 ``save`` 或 ``organize``。
+    """
+    target = NODE_SAVE if state.get("review_passed") else NODE_ORGANIZE
+    logger.info("审核路由: review_passed=%s → %s", state.get("review_passed"), target)
+    return target
+
+
+# ── 图构建 ────────────────────────────────────────────────────────────────
+
+
+def build_graph() -> Any:
+    """组装并编译 LangGraph 工作流。
+
+    Returns:
+        编译后的 StateGraph app，可通过 ``app.stream(input)`` 执行。
+    """
+    graph = StateGraph(KBState)
+
+    # 注册节点
+    graph.add_node(NODE_COLLECT, nodes.collect_node)
+    graph.add_node(NODE_ANALYZE, nodes.analyze_node)
+    graph.add_node(NODE_ORGANIZE, nodes.organize_node)
+    graph.add_node(NODE_REVIEW, nodes.review_node)
+    graph.add_node(NODE_SAVE, nodes.save_node)
+
+    # 线性主链
+    graph.add_edge(NODE_COLLECT, NODE_ANALYZE)
+    graph.add_edge(NODE_ANALYZE, NODE_ORGANIZE)
+    graph.add_edge(NODE_ORGANIZE, NODE_REVIEW)
+
+    # 审核后的条件分支
+    graph.add_conditional_edges(
+        NODE_REVIEW,
+        _review_router,
+        {NODE_SAVE: NODE_SAVE, NODE_ORGANIZE: NODE_ORGANIZE},
+    )
+
+    # 终点
+    graph.add_edge(NODE_SAVE, END)
+
+    # 入口
+    graph.set_entry_point(NODE_COLLECT)
+
+    return graph.compile()
+
+
+# ── 流式执行辅助 ──────────────────────────────────────────────────────────
+
+
+def _summarize_update(node_name: str, update: dict[str, Any] | None) -> str:
+    """抽取单节点输出的关键字段，用于流式打印。
+
+    Args:
+        node_name: 当前节点名。
+        update: 节点返回的部分状态更新；LangGraph 对无状态变更的节点
+            可能给出 None（如 save_node 返回空字典）。
+
+    Returns:
+        单行关键输出摘要。
+    """
+    if update is None:
+        update = {}
+    if node_name == NODE_COLLECT:
+        return f"sources={len(update.get('sources', []))} 条"
+    if node_name == NODE_ANALYZE:
+        tracker = update.get("cost_tracker", {})
+        return (
+            f"analyses={len(update.get('analyses', []))} 条, "
+            f"llm_calls={tracker.get('llm_calls', 0)}, "
+            f"tokens={tracker.get('total_tokens', 0)}"
+        )
+    if node_name == NODE_ORGANIZE:
+        return f"articles={len(update.get('articles', []))} 条"
+    if node_name == NODE_REVIEW:
+        return (
+            f"passed={update.get('review_passed')}, "
+            f"iteration={update.get('iteration')}, "
+            f"feedback={update.get('review_feedback', '')[:40]!r}"
+        )
+    if node_name == NODE_SAVE:
+        return "知识条目已保存"
+    return str(update)
+
+
+# ── 测试入口 ──────────────────────────────────────────────────────────────
+
+
+if __name__ == "__main__":
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+    )
+
+    app = build_graph()
+
+    try:
+        print(app.get_graph().draw_ascii())
+    except Exception as exc:
+        logger.warning("绘制图结构失败: %s", exc)
+
+    print("=" * 60)
+    print("流式执行 pipeline")
+    print("=" * 60)
+
+    for chunk in app.stream(new_state()):
+        for node_name, update in chunk.items():
+            print(f"[{node_name}] {_summarize_update(node_name, update)}")

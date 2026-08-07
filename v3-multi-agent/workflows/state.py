@@ -50,7 +50,7 @@ class AnalysisEntry(TypedDict):
         source_id: 对应的来源条目 ID，用于关联回 Sources。
         summary: AI 生成的摘要（<=200 字）。
         key_points: 关键要点列表（2-5 条）。
-        score: 技术价值评分（1-10）。
+        score: 技术价值评分（0-1 归一化，organize 阶段以 0.6 为保留阈值）。
         tags: 标签列表（2-5 个）。
     """
 

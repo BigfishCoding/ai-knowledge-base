@@ -19,6 +19,7 @@ import re
 from pathlib import Path
 from typing import Any
 
+import httpx
 from openai import OpenAI
 
 logger = logging.getLogger(__name__)
@@ -85,7 +86,9 @@ def _client() -> OpenAI:
             f"环境变量 {ENV_API_KEY} 未设置，请检查 .env 文件"
         )
     base_url = os.environ.get(ENV_BASE_URL, DEFAULT_BASE_URL)
-    return OpenAI(api_key=api_key, base_url=base_url)
+    # 强制不走代理（trust_env=False 忽略 HTTP_PROXY/HTTPS_PROXY 环境变量）
+    http_client = httpx.Client(trust_env=False)
+    return OpenAI(api_key=api_key, base_url=base_url, http_client=http_client)
 
 
 def _model() -> str:
@@ -128,7 +131,7 @@ def chat_json(
     prompt: str,
     system: str = "",
     model: str | None = None,
-) -> dict[str, Any]:
+) -> tuple[dict[str, Any], dict[str, Any]]:
     """发送对话请求并强制解析 JSON 响应。
 
     Args:
@@ -137,7 +140,8 @@ def chat_json(
         model: 覆盖默认模型名。
 
     Returns:
-        解析后的 JSON 字典。
+        ``(parsed_json, usage)`` 元组：parsed_json 为解析后的字典，
+        usage 为 token 用量字典（含 prompt_tokens / completion_tokens / total_tokens）。
 
     Raises:
         ValueError: 当模型返回内容无法解析为 JSON 时抛出。
@@ -147,7 +151,7 @@ def chat_json(
         if system
         else "请严格返回合法 JSON，不要包含任何多余文字或 markdown 代码块。"
     )
-    text, _ = chat(prompt, system=json_system, model=model)
+    text, usage = chat(prompt, system=json_system, model=model)
 
     cleaned = JSON_FENCE_PATTERN.sub("", text.strip())
 
@@ -161,4 +165,34 @@ def chat_json(
         logger.error("模型返回 JSON 根节点应为 object, 实际为 %s", type(data).__name__)
         raise ValueError(f"chat_json 返回根节点类型错误: {type(data).__name__}")
 
-    return data
+    return data, usage
+
+
+# ── Token 用量追踪 ────────────────────────────────────────────────────────
+
+
+def accumulate_usage(tracker: dict[str, Any], usage: dict[str, Any]) -> dict[str, Any]:
+    """将一次 LLM 调用的 token 用量累加到追踪器。
+
+    每次调用都会自增 llm_calls，并累加三类 token 计数。
+    不修改传入的 tracker，返回新字典（保持节点纯函数特性）。
+
+    Args:
+        tracker: 当前累计的用量追踪字典。
+        usage: 单次调用返回的 usage 字典。
+
+    Returns:
+        累加后的新追踪字典。
+    """
+    accumulated = dict(tracker)
+    accumulated["llm_calls"] = accumulated.get("llm_calls", 0) + 1
+    accumulated["prompt_tokens"] = accumulated.get("prompt_tokens", 0) + int(
+        usage.get("prompt_tokens", 0)
+    )
+    accumulated["completion_tokens"] = accumulated.get("completion_tokens", 0) + int(
+        usage.get("completion_tokens", 0)
+    )
+    accumulated["total_tokens"] = accumulated.get("total_tokens", 0) + int(
+        usage.get("total_tokens", 0)
+    )
+    return accumulated
