@@ -321,54 +321,42 @@ def _build_review_prompt(articles: list[dict[str, Any]]) -> str:
 
 
 def review_node(state: KBState) -> dict[str, Any]:
-    """审核节点：LLM 四维度评分，达到最大轮次时强制通过。
+    """审核节点（临时测试版）：模拟审核循环，验证回炉路径。
+
+    ⚠️ 临时测试代码：前 2 轮强制返回 review_passed=False（模拟不通过），
+    第 3 轮（iteration >= 2）强制返回 review_passed=True。
+    验证完成后需恢复为 LLM 四维度评分版本。
 
     Args:
         state: 当前全局状态。
 
     Returns:
-        部分更新：``review_passed``、``review_feedback``、``iteration``、
-        ``cost_tracker``。
+        部分更新：``review_passed``、``review_feedback``、``iteration``。
     """
     iteration = state["iteration"] + 1
     logger.info("[review_node] 第 %d 轮审核", iteration)
 
-    # 达到最大审核轮次：不再调用 LLM，强制通过
+    # 前 2 轮强制不通过，第 3 轮起强制通过
     if state["iteration"] >= REVIEW_FORCE_ITERATION:
-        logger.info("[review_node] 达到最大审核轮次，强制通过")
-        return {
-            "review_passed": True,
-            "review_feedback": "达到最大审核轮次，强制通过",
-            "iteration": iteration,
-        }
+        review_passed = True
+        feedback = "达到最大审核轮次，强制通过"
+    elif iteration == 1:
+        review_passed = False
+        feedback = "模拟不通过（第 1 轮）：摘要不够具体，请补充技术要点"
+    else:
+        review_passed = False
+        feedback = "模拟不通过（第 2 轮）：标签不够准确，请优化标签"
 
-    tracker = dict(state["cost_tracker"])
-    try:
-        data, usage = chat_json(
-            _build_review_prompt(state["articles"]), system=REVIEW_SYSTEM
-        )
-        tracker = accumulate_usage(tracker, usage)
-    except (RuntimeError, ValueError) as exc:
-        logger.error("[review_node] 审核调用失败: %s", exc)
-        return {
-            "review_passed": False,
-            "review_feedback": f"审核调用失败：{exc}",
-            "iteration": iteration,
-            "cost_tracker": tracker,
-        }
-
-    passed = bool(data.get("passed"))
     logger.info(
-        "[review_node] 第 %d 轮结果: passed=%s overall_score=%s",
+        "[review_node] 测试版结果: iteration=%d review_passed=%s feedback=%r",
         iteration,
-        passed,
-        data.get("overall_score"),
+        review_passed,
+        feedback,
     )
     return {
-        "review_passed": passed,
-        "review_feedback": str(data.get("feedback") or ""),
+        "review_passed": review_passed,
+        "review_feedback": feedback,
         "iteration": iteration,
-        "cost_tracker": tracker,
     }
 
 
