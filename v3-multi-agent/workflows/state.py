@@ -11,7 +11,7 @@
     state["sources"] = [...]  # 各节点按字段读写
 """
 
-from typing import TypedDict
+from typing import NotRequired, TypedDict
 
 # ── 常量 ──────────────────────────────────────────────────────────────────
 
@@ -110,6 +110,9 @@ class KBState(TypedDict):
     字段均为结构化摘要而非原始数据（报告式通信原则），
     节点间以最小必要信息传递，降低上下文占用。
     """
+
+    # 项目计划/目标：供审核节点评估相关性维度参考（可选，不强制提供）
+    plan: NotRequired[str]
 
     # 采集结果：SourceEntry 列表，每项是去冗余后的来源摘要
     sources: list[SourceEntry]

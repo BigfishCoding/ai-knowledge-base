@@ -8,7 +8,7 @@
 - ``collect_node``: GitHub Search API 采集 AI 相关仓库
 - ``analyze_node``: LLM 生成中文摘要、标签、评分
 - ``organize_node``: 过滤低分(<0.6)、按 URL 去重、应用审核反馈修正
-- ``review_node``: LLM 四维度审核，iteration >= 2 强制通过
+- ``review_node``: 五维度 LLM 评分审核，加权总分 >= 7.0 通过（实现见 workflows.reviewer）
 - ``save_node``: 写入 knowledge/articles/ JSON 文件并重建 index.json
 """
 
@@ -31,7 +31,8 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from workflows.model_client import accumulate_usage, chat, chat_json
+from workflows.model_client import accumulate_usage, chat_json
+from workflows.reviewer import review_node
 from workflows.state import KBState
 
 logger = logging.getLogger(__name__)
@@ -48,7 +49,6 @@ ENV_GITHUB_TOKEN = "GITHUB_TOKEN"
 
 SOURCE_TYPE = "github_trending"
 SCORE_KEEP_THRESHOLD = 0.6
-REVIEW_FORCE_ITERATION = 2
 QUERY_TIMEOUT_SECONDS = 15
 
 ARTICLES_DIR = PROJECT_ROOT / "knowledge" / "articles"
@@ -57,10 +57,6 @@ INDEX_FILENAME = "index.json"
 ANALYZE_SYSTEM = (
     "你是 AI 技术内容分析 Agent。对每条 GitHub 仓库信息生成结构化中文分析，"
     "只输出合法 JSON，不要输出任何多余文字。"
-)
-REVIEW_SYSTEM = (
-    "你是知识条目审核 Agent。从摘要质量、标签准确、分类合理、一致性四个维度"
-    "审核知识条目，只输出合法 JSON，不要输出任何多余文字。"
 )
 FIX_SYSTEM = (
     "你是知识条目修正 Agent。根据审核反馈定向修正知识条目列表，"
@@ -306,58 +302,9 @@ def organize_node(state: KBState) -> dict[str, Any]:
 
 
 # ── 节点 4：审核 ──────────────────────────────────────────────────────────
-
-
-def _build_review_prompt(articles: list[dict[str, Any]]) -> str:
-    """构建四维度审核提示词。"""
-    return (
-        "请从四个维度审核以下知识条目：摘要质量、标签准确、分类合理、一致性。\n"
-        f"条目列表：{json.dumps(articles, ensure_ascii=False)}\n"
-        "输出 JSON：{\"passed\": bool, \"overall_score\": float(0-1), "
-        "\"feedback\": str(具体改进意见), "
-        "\"scores\": {\"summary_quality\": float, \"tag_accuracy\": float, "
-        "\"category_reasonableness\": float, \"consistency\": float}}"
-    )
-
-
-def review_node(state: KBState) -> dict[str, Any]:
-    """审核节点（临时测试版）：模拟审核循环，验证回炉路径。
-
-    ⚠️ 临时测试代码：前 2 轮强制返回 review_passed=False（模拟不通过），
-    第 3 轮（iteration >= 2）强制返回 review_passed=True。
-    验证完成后需恢复为 LLM 四维度评分版本。
-
-    Args:
-        state: 当前全局状态。
-
-    Returns:
-        部分更新：``review_passed``、``review_feedback``、``iteration``。
-    """
-    iteration = state["iteration"] + 1
-    logger.info("[review_node] 第 %d 轮审核", iteration)
-
-    # 前 2 轮强制不通过，第 3 轮起强制通过
-    if state["iteration"] >= REVIEW_FORCE_ITERATION:
-        review_passed = True
-        feedback = "达到最大审核轮次，强制通过"
-    elif iteration == 1:
-        review_passed = False
-        feedback = "模拟不通过（第 1 轮）：摘要不够具体，请补充技术要点"
-    else:
-        review_passed = False
-        feedback = "模拟不通过（第 2 轮）：标签不够准确，请优化标签"
-
-    logger.info(
-        "[review_node] 测试版结果: iteration=%d review_passed=%s feedback=%r",
-        iteration,
-        review_passed,
-        feedback,
-    )
-    return {
-        "review_passed": review_passed,
-        "review_feedback": feedback,
-        "iteration": iteration,
-    }
+#
+# review_node 由 workflows.reviewer 提供：五维度 LLM 评分 + 代码重算加权总分，
+# 通过阈值 7.0，LLM 失败自动放行。模块顶部导入后直接注册进 NODES 注册表。
 
 
 # ── 节点 5：保存 ──────────────────────────────────────────────────────────

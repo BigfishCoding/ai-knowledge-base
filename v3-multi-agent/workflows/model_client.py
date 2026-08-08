@@ -99,13 +99,20 @@ def _model() -> str:
 # ── 高层接口 ──────────────────────────────────────────────────────────────
 
 
-def chat(prompt: str, system: str = "", model: str | None = None) -> tuple[str, dict[str, Any]]:
+def chat(
+    prompt: str,
+    system: str = "",
+    model: str | None = None,
+    temperature: float | None = None,
+) -> tuple[str, dict[str, Any]]:
     """发送单轮对话请求。
 
     Args:
         prompt: 用户消息内容。
         system: 可选系统提示词，置空则省略。
         model: 覆盖默认模型名，None 时使用环境变量配置。
+        temperature: 采样温度；None 时使用 API 默认值。低温度可提升评分等
+            任务的输出一致性。
 
     Returns:
         ``(text, usage)`` 元组：text 为模型回复文本，
@@ -116,10 +123,10 @@ def chat(prompt: str, system: str = "", model: str | None = None) -> tuple[str, 
         messages.append({"role": "system", "content": system})
     messages.append({"role": "user", "content": prompt})
 
-    response = _client().chat.completions.create(
-        model=model or _model(),
-        messages=messages,
-    )
+    request: dict[str, Any] = {"model": model or _model(), "messages": messages}
+    if temperature is not None:
+        request["temperature"] = temperature
+    response = _client().chat.completions.create(**request)
 
     text = response.choices[0].message.content or ""
     usage = response.usage.model_dump() if response.usage else {}
@@ -131,6 +138,7 @@ def chat_json(
     prompt: str,
     system: str = "",
     model: str | None = None,
+    temperature: float | None = None,
 ) -> tuple[dict[str, Any], dict[str, Any]]:
     """发送对话请求并强制解析 JSON 响应。
 
@@ -138,6 +146,7 @@ def chat_json(
         prompt: 用户消息内容，应明确要求返回 JSON。
         system: 可选系统提示词。
         model: 覆盖默认模型名。
+        temperature: 采样温度；None 时使用 API 默认值。
 
     Returns:
         ``(parsed_json, usage)`` 元组：parsed_json 为解析后的字典，
@@ -151,7 +160,7 @@ def chat_json(
         if system
         else "请严格返回合法 JSON，不要包含任何多余文字或 markdown 代码块。"
     )
-    text, usage = chat(prompt, system=json_system, model=model)
+    text, usage = chat(prompt, system=json_system, model=model, temperature=temperature)
 
     cleaned = JSON_FENCE_PATTERN.sub("", text.strip())
 
