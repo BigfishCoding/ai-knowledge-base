@@ -23,7 +23,7 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from workflows.model_client import accumulate_usage, chat_json
-from workflows.state import KBState, MAX_ITERATIONS
+from workflows.state import KBState
 
 logger = logging.getLogger(__name__)
 
@@ -187,6 +187,8 @@ def review_node(state: KBState) -> dict[str, Any]:
 
     评分一致性使用低温度（0.1）；加权总分由代码重算，通过阈值为 7.0；
     LLM 调用失败或结果异常时自动放行，避免阻塞流水线。
+    审核超限（iteration >= MAX_ITERATIONS）仍不通过时不在此强制通过，
+    由图的 ``route_after_review`` 路由到 human_flag 人工介入终点。
 
     Args:
         state: 当前全局状态，读取 ``analyses`` / ``plan`` / ``iteration`` /
@@ -198,17 +200,6 @@ def review_node(state: KBState) -> dict[str, Any]:
     """
     iteration = state["iteration"] + 1
     tracker = dict(state["cost_tracker"])
-
-    # 达到最大轮次强制通过，防止审核回路无限循环
-    if iteration >= MAX_ITERATIONS:
-        feedback = f"达到最大审核轮次 {MAX_ITERATIONS}，强制通过"
-        logger.warning("[review_node] %s", feedback)
-        return {
-            "review_passed": True,
-            "review_feedback": feedback,
-            "iteration": iteration,
-            "cost_tracker": tracker,
-        }
 
     analyses = state["analyses"][:REVIEW_LIMIT]
     if not analyses:

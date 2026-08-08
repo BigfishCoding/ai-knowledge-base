@@ -1,12 +1,14 @@
-"""LangGraph 工作流组装：StateGraph + 条件边。
+"""LangGraph 工作流组装：StateGraph + 三路条件路由。
 
-将 :mod:`workflows.nodes` 的 5 个节点组装为线性 + 审核回环的图：
+将采集/分析/审核/修订/人工介入/整理/保存节点组装为带审核回环的图：
 
 ::
 
-    collect → analyze → organize → review ──passed=True──→ save → END
-                                  │
-                                  └──passed=False──→ organize（回炉修正）
+    collect → analyze → review ──passed=True──→ organize → save → END
+                        │
+                        ├──passed=False & iteration<3 ──→ revise ──→ review
+                        │
+                        └──passed=False & iteration>=3 ──→ human_flag → END
 
 用法:
     python workflows/graph.py
@@ -25,7 +27,9 @@ if str(PROJECT_ROOT) not in sys.path:
 from langgraph.graph import END, StateGraph
 
 from workflows import nodes
-from workflows.state import KBState, new_state
+from workflows.human_flag import human_flag_node
+from workflows.reviser import revise_node
+from workflows.state import KBState, MAX_ITERATIONS, new_state
 
 logger = logging.getLogger(__name__)
 
@@ -35,23 +39,39 @@ NODE_COLLECT = "collect"
 NODE_ANALYZE = "analyze"
 NODE_ORGANIZE = "organize"
 NODE_REVIEW = "review"
+NODE_REVISE = "revise"
+NODE_HUMAN_FLAG = "human_flag"
 NODE_SAVE = "save"
 
 
 # ── 条件路由 ──────────────────────────────────────────────────────────────
 
 
-def _review_router(state: KBState) -> str:
-    """审核后的条件分支：通过则保存，否则回整理节点修正。
+def route_after_review(state: KBState) -> str:
+    """审核后的三路条件路由。
+
+    - 通过 → ``organize``：继续整理并保存
+    - 未通过且 ``iteration < MAX_ITERATIONS`` → ``revise``：回炉修订，进入审核循环
+    - 未通过且 ``iteration >= MAX_ITERATIONS`` → ``human_flag``：人工介入终点
 
     Args:
         state: 当前全局状态。
 
     Returns:
-        目标节点名 ``save`` 或 ``organize``。
+        目标节点名 ``organize`` / ``revise`` / ``human_flag``。
     """
-    target = NODE_SAVE if state.get("review_passed") else NODE_ORGANIZE
-    logger.info("审核路由: review_passed=%s → %s", state.get("review_passed"), target)
+    if state.get("review_passed"):
+        target = NODE_ORGANIZE
+    elif state["iteration"] < MAX_ITERATIONS:
+        target = NODE_REVISE
+    else:
+        target = NODE_HUMAN_FLAG
+    logger.info(
+        "审核路由: review_passed=%s iteration=%d → %s",
+        state.get("review_passed"),
+        state["iteration"],
+        target,
+    )
     return target
 
 
@@ -69,21 +89,33 @@ def build_graph() -> Any:
     # 注册节点
     graph.add_node(NODE_COLLECT, nodes.collect_node)
     graph.add_node(NODE_ANALYZE, nodes.analyze_node)
-    graph.add_node(NODE_ORGANIZE, nodes.organize_node)
     graph.add_node(NODE_REVIEW, nodes.review_node)
+    graph.add_node(NODE_REVISE, revise_node)
+    graph.add_node(NODE_HUMAN_FLAG, human_flag_node)
+    graph.add_node(NODE_ORGANIZE, nodes.organize_node)
     graph.add_node(NODE_SAVE, nodes.save_node)
 
-    # 线性主链
+    # 线性主链：分析后即审核（review 针对 analyses，先于 organize）
     graph.add_edge(NODE_COLLECT, NODE_ANALYZE)
-    graph.add_edge(NODE_ANALYZE, NODE_ORGANIZE)
-    graph.add_edge(NODE_ORGANIZE, NODE_REVIEW)
+    graph.add_edge(NODE_ANALYZE, NODE_REVIEW)
 
-    # 审核后的条件分支
+    # 审核后的三路条件分支
     graph.add_conditional_edges(
         NODE_REVIEW,
-        _review_router,
-        {NODE_SAVE: NODE_SAVE, NODE_ORGANIZE: NODE_ORGANIZE},
+        route_after_review,
+        {
+            NODE_ORGANIZE: NODE_ORGANIZE,
+            NODE_REVISE: NODE_REVISE,
+            NODE_HUMAN_FLAG: NODE_HUMAN_FLAG,
+        },
     )
+
+    # 回炉循环：修订后的 analyses 重新审核
+    graph.add_edge(NODE_REVISE, NODE_REVIEW)
+
+    # 通过后整理并保存；超限未通过则人工介入
+    graph.add_edge(NODE_ORGANIZE, NODE_SAVE)
+    graph.add_edge(NODE_HUMAN_FLAG, END)
 
     # 终点
     graph.add_edge(NODE_SAVE, END)
@@ -127,6 +159,10 @@ def _summarize_update(node_name: str, update: dict[str, Any] | None) -> str:
             f"iteration={update.get('iteration')}, "
             f"feedback={update.get('review_feedback', '')[:40]!r}"
         )
+    if node_name == NODE_REVISE:
+        return f"analyses={len(update.get('analyses', []))} 条（已修订）"
+    if node_name == NODE_HUMAN_FLAG:
+        return f"needs_human_review={update.get('needs_human_review')}"
     if node_name == NODE_SAVE:
         return "知识条目已保存"
     return str(update)

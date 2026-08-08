@@ -114,6 +114,9 @@ class KBState(TypedDict):
     # 项目计划/目标：供审核节点评估相关性维度参考（可选，不强制提供）
     plan: NotRequired[str]
 
+    # 人工介入标记：审核超限仍不通过时由 human_flag 节点置 True
+    needs_human_review: NotRequired[bool]
+
     # 采集结果：SourceEntry 列表，每项是去冗余后的来源摘要
     sources: list[SourceEntry]
 
@@ -134,6 +137,8 @@ class KBState(TypedDict):
 
     # Token 追踪：CostTracker 结构，跨节点累计 LLM 用量
     cost_tracker: CostTracker
+
+    needs_human_review: bool = True  # ← 新增：HumanFlag 节点设为 True
 
 
 # ── 工厂函数 ──────────────────────────────────────────────────────────────
