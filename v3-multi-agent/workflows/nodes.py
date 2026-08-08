@@ -7,7 +7,7 @@
 节点一览：
 - ``collect_node``: GitHub Search API 采集 AI 相关仓库
 - ``analyze_node``: LLM 生成中文摘要、标签、评分
-- ``organize_node``: 过滤低分(<0.6)、按 URL 去重、应用审核反馈修正
+- ``organize_node``: 按 plan 相关性阈值过滤低分、按 URL 去重、应用审核反馈修正
 - ``review_node``: 五维度 LLM 评分审核，加权总分 >= 7.0 通过（实现见 workflows.reviewer）
 - ``save_node``: 写入 knowledge/articles/ JSON 文件并重建 index.json
 """
@@ -39,16 +39,18 @@ logger = logging.getLogger(__name__)
 
 # ── 常量 ──────────────────────────────────────────────────────────────────
 
-GITHUB_SEARCH_API = "https://api.github.com/search/repositories"
+GITHUB_SEARCH_API = os.environ.get(
+    "GITHUB_API_MIRROR",
+    "https://api.github.com/search/repositories",
+)
 GITHUB_AI_QUERY = "LLM OR AI OR agent"
 GITHUB_USER_AGENT = "ai-knowledge-base/1.0"
-GITHUB_RESULT_LIMIT = 5
+GITHUB_RESULT_LIMIT = 10
 GITHUB_SORT = "stars"
 
 ENV_GITHUB_TOKEN = "GITHUB_TOKEN"
 
 SOURCE_TYPE = "github_trending"
-SCORE_KEEP_THRESHOLD = 0.6
 QUERY_TIMEOUT_SECONDS = 15
 
 ARTICLES_DIR = PROJECT_ROOT / "knowledge" / "articles"
@@ -86,11 +88,12 @@ def _make_slug(title: str) -> str:
     return slug or "untitled"
 
 
-def _build_github_request(query: str) -> urllib.request.Request:
+def _build_github_request(query: str, per_page: int = GITHUB_RESULT_LIMIT) -> urllib.request.Request:
     """构建带鉴权头的 GitHub Search API 请求。
 
     Args:
         query: 搜索关键词（将用 urllib.parse.quote 编码）。
+        per_page: 单源采集数量，默认 :data:`GITHUB_RESULT_LIMIT`。
 
     Returns:
         配置好的 Request 对象。
@@ -98,7 +101,7 @@ def _build_github_request(query: str) -> urllib.request.Request:
     encoded = urllib.parse.quote(query, safe="")
     url = (
         f"{GITHUB_SEARCH_API}?q={encoded}"
-        f"&sort={GITHUB_SORT}&order=desc&per_page={GITHUB_RESULT_LIMIT}"
+        f"&sort={GITHUB_SORT}&order=desc&per_page={per_page}"
     )
     request = urllib.request.Request(
         url,
@@ -118,6 +121,45 @@ def _build_github_request(query: str) -> urllib.request.Request:
     return request
 
 
+def _mock_sources() -> list[dict[str, Any]]:
+    """GitHub API 不可用时的内置 Mock 数据，用于跑通后续流程。
+
+    Returns:
+        模拟的 SourceEntry 列表（3 条热门 AI 仓库）。
+    """
+    now = _now_iso()
+    date_str = datetime.now(timezone.utc).strftime("%Y%m%d")
+    return [
+        {
+            "source_id": f"gh-{date_str}-001",
+            "title": "langchain-ai/langchain",
+            "url": "https://github.com/langchain-ai/langchain",
+            "source_type": SOURCE_TYPE,
+            "collected_at": now,
+            "popularity": 100000.0,
+            "summary": "Framework for developing applications powered by large language models.",
+        },
+        {
+            "source_id": f"gh-{date_str}-002",
+            "title": "microsoft/autogen",
+            "url": "https://github.com/microsoft/autogen",
+            "source_type": SOURCE_TYPE,
+            "collected_at": now,
+            "popularity": 35000.0,
+            "summary": "Framework for building multi-agent conversational AI systems.",
+        },
+        {
+            "source_id": f"gh-{date_str}-003",
+            "title": "run-llama/llama_index",
+            "url": "https://github.com/run-llama/llama_index",
+            "source_type": SOURCE_TYPE,
+            "collected_at": now,
+            "popularity": 38000.0,
+            "summary": "Data framework for connecting custom data sources to large language models.",
+        },
+    ]
+
+
 # ── 节点 1：采集 ──────────────────────────────────────────────────────────
 
 
@@ -131,7 +173,9 @@ def collect_node(state: KBState) -> dict[str, Any]:
         部分更新：``sources``（SourceEntry 摘要列表）。
     """
     logger.info("[collect_node] 开始采集 GitHub AI 相关仓库")
-    request = _build_github_request(GITHUB_AI_QUERY)
+    plan = state.get("plan", {}) or {}
+    per_page = int(plan.get("per_source_limit", 10))
+    request = _build_github_request(GITHUB_AI_QUERY, per_page)
 
     try:
         with urllib.request.urlopen(request, timeout=QUERY_TIMEOUT_SECONDS) as response:
@@ -145,6 +189,11 @@ def collect_node(state: KBState) -> dict[str, Any]:
         ssl.SSLError,
     ) as exc:
         logger.error("[collect_node] GitHub API 调用失败: %s", exc)
+
+        # Mock 回退：API 不通时用内置测试数据继续跑通后续流程
+        if os.environ.get("GITHUB_MOCK_FALLBACK", "").lower() in ("1", "true", "yes"):
+            logger.warning("[collect_node] 启用 Mock 回退模式")
+            return {"sources": _mock_sources()}
         return {"sources": []}
 
     items = payload.get("items", [])
@@ -249,13 +298,15 @@ def organize_node(state: KBState) -> dict[str, Any]:
     logger.info("[organize_node] 整理 %d 条分析结果", len(state["analyses"]))
     tracker = dict(state["cost_tracker"])
     source_map = {s["source_id"]: s for s in state["sources"]}
+    plan = state.get("plan", {}) or {}
+    relevance_threshold = float(plan.get("relevance_threshold", 0.5))
 
     seen_urls: set[str] = set()
     articles: list[dict[str, Any]] = []
 
     for analysis in state["analyses"]:
         # 过滤低分条目
-        if analysis["score"] < SCORE_KEEP_THRESHOLD:
+        if analysis["score"] < relevance_threshold:
             logger.debug("[organize_node] 剔除低分条目 %s", analysis["source_id"])
             continue
 

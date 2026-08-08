@@ -187,8 +187,9 @@ def review_node(state: KBState) -> dict[str, Any]:
 
     评分一致性使用低温度（0.1）；加权总分由代码重算，通过阈值为 7.0；
     LLM 调用失败或结果异常时自动放行，避免阻塞流水线。
-    审核超限（iteration >= MAX_ITERATIONS）仍不通过时不在此强制通过，
-    由图的 ``route_after_review`` 路由到 human_flag 人工介入终点。
+    超过 ``plan.max_iterations``（默认 3）时作为内部兜底强制通过，
+    保证审核循环必然终止（正常流程在第 max 轮未通过时由图路由到
+    ``human_flag`` 人工介入）。
 
     Args:
         state: 当前全局状态，读取 ``analyses`` / ``plan`` / ``iteration`` /
@@ -201,6 +202,22 @@ def review_node(state: KBState) -> dict[str, Any]:
     iteration = state["iteration"] + 1
     tracker = dict(state["cost_tracker"])
 
+    plan = state.get("plan", {}) or {}
+    if not isinstance(plan, dict):
+        plan = {}
+    max_iterations = int(plan.get("max_iterations", 3))
+
+    # 内部兜底：超过计划轮次上限仍不通过时强制通过，保证审核循环必然终止
+    if iteration > max_iterations:
+        feedback = f"达到计划最大审核轮次 {max_iterations}，强制通过"
+        logger.warning("[review_node] %s", feedback)
+        return {
+            "review_passed": True,
+            "review_feedback": feedback,
+            "iteration": iteration,
+            "cost_tracker": tracker,
+        }
+
     analyses = state["analyses"][:REVIEW_LIMIT]
     if not analyses:
         logger.info("[review_node] 无待审核分析结果，自动通过")
@@ -211,13 +228,11 @@ def review_node(state: KBState) -> dict[str, Any]:
             "cost_tracker": tracker,
         }
 
-    plan = state.get("plan", "")
-    if not isinstance(plan, str):
-        plan = ""
+    plan_text = json.dumps(plan, ensure_ascii=False) if plan else ""
 
     try:
         payload, usage = chat_json(
-            _build_review_prompt(analyses, plan),
+            _build_review_prompt(analyses, plan_text),
             system=REVIEW_SYSTEM,
             temperature=REVIEW_TEMPERATURE,
         )

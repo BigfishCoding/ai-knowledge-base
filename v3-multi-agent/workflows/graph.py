@@ -1,14 +1,14 @@
 """LangGraph 工作流组装：StateGraph + 三路条件路由。
 
-将采集/分析/审核/修订/人工介入/整理/保存节点组装为带审核回环的图：
+将计划/采集/分析/审核/修订/人工介入/整理/保存节点组装为带审核回环的图：
 
 ::
 
-    collect → analyze → review ──passed=True──→ organize → save → END
-                        │
-                        ├──passed=False & iteration<3 ──→ revise ──→ review
-                        │
-                        └──passed=False & iteration>=3 ──→ human_flag → END
+    plan → collect → analyze → review ──passed=True──→ organize → save → END
+                                 │
+                                 ├──passed=False & iteration<plan.max_iterations ──→ revise ──→ review
+                                 │
+                                 └──passed=False & iteration>=plan.max_iterations ──→ human_flag → END
 
 用法:
     python workflows/graph.py
@@ -28,13 +28,15 @@ from langgraph.graph import END, StateGraph
 
 from workflows import nodes
 from workflows.human_flag import human_flag_node
+from workflows.planner import planner_node
 from workflows.reviser import revise_node
-from workflows.state import KBState, MAX_ITERATIONS, new_state
+from workflows.state import KBState, new_state
 
 logger = logging.getLogger(__name__)
 
 # ── 节点名常量 ────────────────────────────────────────────────────────────
 
+NODE_PLAN = "plan"
 NODE_COLLECT = "collect"
 NODE_ANALYZE = "analyze"
 NODE_ORGANIZE = "organize"
@@ -48,11 +50,11 @@ NODE_SAVE = "save"
 
 
 def route_after_review(state: KBState) -> str:
-    """审核后的三路条件路由。
+    """审核后的三路条件路由（审核轮次上限取自计划）。
 
     - 通过 → ``organize``：继续整理并保存
-    - 未通过且 ``iteration < MAX_ITERATIONS`` → ``revise``：回炉修订，进入审核循环
-    - 未通过且 ``iteration >= MAX_ITERATIONS`` → ``human_flag``：人工介入终点
+    - 未通过且 ``iteration < plan.max_iterations``（默认 3） → ``revise``：回炉修订
+    - 未通过且 ``iteration >= plan.max_iterations`` → ``human_flag``：人工介入终点
 
     Args:
         state: 当前全局状态。
@@ -62,10 +64,15 @@ def route_after_review(state: KBState) -> str:
     """
     if state.get("review_passed"):
         target = NODE_ORGANIZE
-    elif state["iteration"] < MAX_ITERATIONS:
-        target = NODE_REVISE
     else:
-        target = NODE_HUMAN_FLAG
+        plan = state.get("plan", {}) or {}
+        if not isinstance(plan, dict):
+            plan = {}
+        max_iterations = int(plan.get("max_iterations", 3))
+        if state["iteration"] < max_iterations:
+            target = NODE_REVISE
+        else:
+            target = NODE_HUMAN_FLAG
     logger.info(
         "审核路由: review_passed=%s iteration=%d → %s",
         state.get("review_passed"),
@@ -87,6 +94,7 @@ def build_graph() -> Any:
     graph = StateGraph(KBState)
 
     # 注册节点
+    graph.add_node(NODE_PLAN, planner_node)
     graph.add_node(NODE_COLLECT, nodes.collect_node)
     graph.add_node(NODE_ANALYZE, nodes.analyze_node)
     graph.add_node(NODE_REVIEW, nodes.review_node)
@@ -95,7 +103,8 @@ def build_graph() -> Any:
     graph.add_node(NODE_ORGANIZE, nodes.organize_node)
     graph.add_node(NODE_SAVE, nodes.save_node)
 
-    # 线性主链：分析后即审核（review 针对 analyses，先于 organize）
+    # 线性主链：先定计划，再采集、分析，随后审核（review 针对 analyses，先于 organize）
+    graph.add_edge(NODE_PLAN, NODE_COLLECT)
     graph.add_edge(NODE_COLLECT, NODE_ANALYZE)
     graph.add_edge(NODE_ANALYZE, NODE_REVIEW)
 
@@ -120,8 +129,8 @@ def build_graph() -> Any:
     # 终点
     graph.add_edge(NODE_SAVE, END)
 
-    # 入口
-    graph.set_entry_point(NODE_COLLECT)
+    # 入口：计划节点
+    graph.set_entry_point(NODE_PLAN)
 
     return graph.compile()
 
@@ -142,6 +151,13 @@ def _summarize_update(node_name: str, update: dict[str, Any] | None) -> str:
     """
     if update is None:
         update = {}
+    if node_name == NODE_PLAN:
+        plan = update.get("plan", {})
+        return (
+            f"per_source_limit={plan.get('per_source_limit')}, "
+            f"relevance_threshold={plan.get('relevance_threshold')}, "
+            f"max_iterations={plan.get('max_iterations')}"
+        )
     if node_name == NODE_COLLECT:
         return f"sources={len(update.get('sources', []))} 条"
     if node_name == NODE_ANALYZE:

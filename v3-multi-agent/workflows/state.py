@@ -138,7 +138,7 @@ class KBState(TypedDict):
     # Token 追踪：CostTracker 结构，跨节点累计 LLM 用量
     cost_tracker: CostTracker
 
-    needs_human_review: bool = True  # ← 新增：HumanFlag 节点设为 True
+    needs_human_review: bool  # ← 新增：HumanFlag 节点设为 True
 
 
 # ── 工厂函数 ──────────────────────────────────────────────────────────────
