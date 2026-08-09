@@ -117,6 +117,7 @@ def revise_node(state: KBState) -> dict[str, Any]:
             _build_revise_prompt(analyses, feedback),
             system=REVISE_SYSTEM,
             temperature=REVISE_TEMPERATURE,
+            node_name="revise",
         )
         tracker = accumulate_usage(tracker, usage)
         improved = _parse_revised(payload)

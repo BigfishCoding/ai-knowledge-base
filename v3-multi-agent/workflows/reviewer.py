@@ -235,6 +235,7 @@ def review_node(state: KBState) -> dict[str, Any]:
             _build_review_prompt(analyses, plan_text),
             system=REVIEW_SYSTEM,
             temperature=REVIEW_TEMPERATURE,
+            node_name="review",
         )
         tracker = accumulate_usage(tracker, usage)
         reviews, overall_feedback = _parse_reviews(payload)

@@ -204,6 +204,29 @@ if __name__ == "__main__":
     print("流式执行 pipeline")
     print("=" * 60)
 
-    for chunk in app.stream(new_state()):
-        for node_name, update in chunk.items():
-            print(f"[{node_name}] {_summarize_update(node_name, update)}")
+    from workflows.model_client import BudgetExceededError, get_cost_guard
+
+    try:
+        for chunk in app.stream(new_state()):
+            for node_name, update in chunk.items():
+                print(f"[{node_name}] {_summarize_update(node_name, update)}")
+        print("\n=== 工作流完成 ===")
+    except BudgetExceededError as exc:
+        # 预算熔断是预期结果：打印友好信息，不炸脚本
+        print(f"\n[FATAL] 预算熔断触发：{exc}")
+
+    # ★ 收尾：打印成本摘要并落盘到 knowledge/reports/（gitignored）
+    guard = get_cost_guard()
+    report = guard.get_report()
+    print(
+        f"\n[CostGuard] 总调用 {report['total_calls']} 次 · "
+        f"总成本 ¥{report['total_cost_yuan']:.4f} · "
+        f"预算 ¥{report['budget_yuan']:.4f}"
+    )
+    for node_name, stats in sorted(report["nodes"].items()):
+        print(
+            f"[CostGuard]    {node_name:<10} 调用 {stats['llm_calls']} 次 · "
+            f"¥{stats['cost_yuan']:.4f}"
+        )
+    saved = guard.save_report()
+    print(f"[CostGuard] 成本报告已保存到 {saved}")

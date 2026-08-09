@@ -31,6 +31,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
+from tests.security import filter_output, sanitize_input
 from workflows.model_client import accumulate_usage, chat_json
 from workflows.reviewer import review_node
 from workflows.state import KBState
@@ -224,6 +225,27 @@ def collect_node(state: KBState) -> dict[str, Any]:
         )
 
     logger.info("[collect_node] 采集到 %d 条仓库", len(sources))
+
+    # ★ 入口清洗：外部 description / title 可能夹带 prompt 注入，进 LLM 前洗一遍
+    total_warnings = 0
+    for source in sources:
+        for field in ("title", "summary"):
+            value = source.get(field)
+            if isinstance(value, str):
+                cleaned, warnings = sanitize_input(value)
+                if warnings:
+                    logger.warning(
+                        "[Security] %s %s 检出异常输入: %s",
+                        source.get("url", "?"),
+                        field,
+                        warnings,
+                    )
+                    total_warnings += len(warnings)
+                source[field] = cleaned
+
+    if total_warnings > 0:
+        logger.warning("[Security] collect 阶段共拦截 %d 处可疑输入", total_warnings)
+
     return {"sources": sources}
 
 
@@ -260,7 +282,9 @@ def analyze_node(state: KBState) -> dict[str, Any]:
     for source in state["sources"]:
         try:
             data, usage = chat_json(
-                _build_analyze_prompt(source), system=ANALYZE_SYSTEM
+                _build_analyze_prompt(source),
+                system=ANALYZE_SYSTEM,
+                node_name="analyze",
             )
             tracker = accumulate_usage(tracker, usage)
         except (RuntimeError, ValueError) as exc:
@@ -349,6 +373,7 @@ def organize_node(state: KBState) -> dict[str, Any]:
             data, usage = chat_json(
                 _build_fix_prompt(articles, state["review_feedback"]),
                 system=FIX_SYSTEM,
+                node_name="organize",
             )
             tracker = accumulate_usage(tracker, usage)
             fixed = data.get("articles")
@@ -356,6 +381,44 @@ def organize_node(state: KBState) -> dict[str, Any]:
                 articles = fixed
         except (RuntimeError, ValueError) as exc:
             logger.warning("[organize_node] 反馈修正失败，保留原条目: %s", exc)
+
+    # ★ 出口过滤：LLM 输出不可信，写盘前对每条条目的文本字段做 PII 掩码
+    total_pii = 0
+    for article in articles:
+        for field in ("title", "summary"):
+            value = article.get(field)
+            if isinstance(value, str):
+                filtered, detections = filter_output(value, mask=True)
+                if detections:
+                    logger.warning(
+                        "[Security] %s %s 掩码 PII: %s",
+                        article.get("id", "?"),
+                        field,
+                        detections,
+                    )
+                    total_pii += len(detections)
+                article[field] = filtered
+
+        key_points = article.get("key_points")
+        if isinstance(key_points, list):
+            masked_points: list[Any] = []
+            for point in key_points:
+                if isinstance(point, str):
+                    filtered, detections = filter_output(point, mask=True)
+                    if detections:
+                        logger.warning(
+                            "[Security] %s key_points 掩码 PII: %s",
+                            article.get("id", "?"),
+                            detections,
+                        )
+                        total_pii += len(detections)
+                    masked_points.append(filtered)
+                else:
+                    masked_points.append(point)
+            article["key_points"] = masked_points
+
+    if total_pii > 0:
+        logger.warning("[Security] organize 阶段共掩码 %d 处 PII", total_pii)
 
     logger.info("[organize_node] 整理完成，保留 %d 条", len(articles))
     return {"articles": articles, "cost_tracker": tracker}
