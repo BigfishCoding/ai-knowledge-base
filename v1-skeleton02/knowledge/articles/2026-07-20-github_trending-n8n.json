@@ -1,0 +1,17 @@
+{
+  "id": "gh-20260720-002",
+  "title": "n8n-io/n8n",
+  "source_url": "https://github.com/n8n-io/n8n",
+  "source_type": "github_trending",
+  "collected_at": "2026-07-20T00:00:00Z",
+  "analyzed_at": "2026-07-20T14:00:00Z",
+  "summary": "Fair-code 工作流自动化平台，内置原生 AI 能力，支持 MCP 协议和 400+ 集成，可自托管或云部署。",
+  "key_points": [
+    "19.7 万 stars，低代码自动化领域的标杆项目",
+    "原生集成 MCP 协议客户端和服务端",
+    "400+ 集成，支持自托管和云部署"
+  ],
+  "tags": ["workflow", "automation", "mcp", "low-code"],
+  "status": "draft",
+  "distributed_to": []
+}

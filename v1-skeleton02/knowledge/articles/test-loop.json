@@ -1,0 +1,17 @@
+{
+  "id": "gh-20260720-011",
+  "title": "LangGraph：LangChain 推出的 Agent 工作流编排框架",
+  "source_url": "https://github.com/langchain-ai/langgraph",
+  "source_type": "github_trending",
+  "collected_at": "2026-07-20T00:00:00Z",
+  "analyzed_at": "2026-07-20T14:00:00Z",
+  "summary": "LangChain 官方 Agent 工作流引擎，支持有向图编排、多 Agent 协作和人机交互循环。",
+  "key_points": [
+    "基于有向图（DAG）的 Agent 工作流编排",
+    "支持条件分支、循环和人机交互节点",
+    "与 LangChain 生态无缝集成"
+  ],
+  "tags": ["langgraph", "agent-orchestration", "workflow", "langchain"],
+  "status": "draft",
+  "distributed_to": []
+}

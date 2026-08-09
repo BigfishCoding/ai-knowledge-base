@@ -1,0 +1,72 @@
+[
+  {
+    "title": "NousResearch/hermes-agent",
+    "url": "https://github.com/NousResearch/hermes-agent",
+    "source": "github_trending",
+    "popularity": 217581,
+    "summary": "NousResearch 开源的 AI Agent 框架，支持 Claude、ChatGPT 等多种模型，提供持续进化的 Agent 能力。"
+  },
+  {
+    "title": "n8n-io/n8n",
+    "url": "https://github.com/n8n-io/n8n",
+    "source": "github_trending",
+    "popularity": 197158,
+    "summary": "Fair-code 工作流自动化平台，内置原生 AI 能力，支持 MCP 协议和 400+ 集成，可自托管。"
+  },
+  {
+    "title": "Significant-Gravitas/AutoGPT",
+    "url": "https://github.com/Significant-Gravitas/AutoGPT",
+    "source": "github_trending",
+    "popularity": 185617,
+    "summary": "开源自主 AI Agent 框架，支持多模型（GPT、Claude、LLaMA），致力于让每个人都能使用和构建 AI。"
+  },
+  {
+    "title": "langgenius/dify",
+    "url": "https://github.com/langgenius/dify",
+    "source": "github_trending",
+    "popularity": 149468,
+    "summary": "LLM 应用开发平台，支持 Agentic workflow、RAG 管道和多种 AI 模型，可云端或自托管部署。"
+  },
+  {
+    "title": "langchain-ai/langchain",
+    "url": "https://github.com/langchain-ai/langchain",
+    "source": "github_trending",
+    "popularity": 142160,
+    "summary": "LangChain 官方 AI Agent 工程平台，支持多 Agent 编排、RAG、LangGraph 工作流，企业级 LLM 框架。"
+  },
+  {
+    "title": "Shubhamsaboo/awesome-llm-apps",
+    "url": "https://github.com/Shubhamsaboo/awesome-llm-apps",
+    "source": "github_trending",
+    "popularity": 124963,
+    "summary": "100+ 可直接运行的 AI Agent 和 RAG 应用集合，覆盖多种场景，支持克隆定制和部署。"
+  },
+  {
+    "title": "browser-use/browser-use",
+    "url": "https://github.com/browser-use/browser-use",
+    "source": "github_trending",
+    "popularity": 105691,
+    "summary": "让 AI Agent 能操控浏览器的工具，支持自动化网页任务，基于 Playwright 实现。"
+  },
+  {
+    "title": "DietrichGebert/ponytail",
+    "url": "https://github.com/DietrichGebert/ponytail",
+    "source": "github_trending",
+    "popularity": 86430,
+    "summary": "让 AI Agent 像资深工程师一样思考的编程工具，强调"不写代码才是好代码"，本月热门新项目。"
+  },
+  {
+    "title": "infiniflow/ragflow",
+    "url": "https://github.com/infiniflow/ragflow",
+    "source": "github_trending",
+    "popularity": 85460,
+    "summary": "开源 RAG 引擎，深度融合检索增强生成与 Agent 能力，为 LLM 提供优质上下文层。"
+  },
+  {
+    "title": "OpenHands/OpenHands",
+    "url": "https://github.com/OpenHands/OpenHands",
+    "source": "github_trending",
+    "popularity": 84320,
+    "summary": "AI 驱动的软件开发平台，让 AI 代理自主完成编码、调试和部署任务。"
+  }
+]

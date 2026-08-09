@@ -1,0 +1,17 @@
+{
+  "id": "gh-20260720-004",
+  "title": "langgenius/dify",
+  "source_url": "https://github.com/langgenius/dify",
+  "source_type": "github_trending",
+  "collected_at": "2026-07-20T00:00:00Z",
+  "analyzed_at": "2026-07-20T14:00:00Z",
+  "summary": "LLM 应用开发平台，融合 Agentic Workflow、RAG 管道和 MCP 协议，支持云端和自托管部署。",
+  "key_points": [
+    "14.9 万 stars，增长最快的 LLM 应用平台之一",
+    "同时支持 Agentic workflow、RAG 管道和 MCP 协议",
+    "支持云端和自托管部署，企业级功能完善"
+  ],
+  "tags": ["llm-platform", "rag", "agentic-workflow", "low-code"],
+  "status": "draft",
+  "distributed_to": []
+}

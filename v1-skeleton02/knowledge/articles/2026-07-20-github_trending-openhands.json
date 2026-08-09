@@ -1,0 +1,17 @@
+{
+  "id": "gh-20260720-010",
+  "title": "OpenHands/OpenHands",
+  "source_url": "https://github.com/OpenHands/OpenHands",
+  "source_type": "github_trending",
+  "collected_at": "2026-07-20T00:00:00Z",
+  "analyzed_at": "2026-07-20T14:00:00Z",
+  "summary": "AI 驱动的软件开发平台，AI Agent 自主完成编码、调试和部署全流程，8.4 万 stars。",
+  "key_points": [
+    "8.4 万 stars，AI 编程领域的头部项目",
+    "支持完整的 SDLC 流程：编码、调试、部署",
+    "基于事件驱动的 Agent 架构"
+  ],
+  "tags": ["ai-coding", "software-development", "devops", "agents"],
+  "status": "draft",
+  "distributed_to": []
+}

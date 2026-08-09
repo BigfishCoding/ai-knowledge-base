@@ -1,0 +1,17 @@
+{
+  "id": "gh-20260720-005",
+  "title": "langchain-ai/langchain",
+  "source_url": "https://github.com/langchain-ai/langchain",
+  "source_type": "github_trending",
+  "collected_at": "2026-07-20T00:00:00Z",
+  "analyzed_at": "2026-07-20T14:00:00Z",
+  "summary": "LLM 开发框架的行业标准，支持多 Agent 编排、RAG 和 LangGraph 工作流引擎，提供 Python 和 TypeScript SDK。",
+  "key_points": [
+    "14.2 万 stars，LLM 开发框架的行业标准",
+    "生态包括 LangGraph（工作流）、LangSmith（可观测性）",
+    "支持 Python 和 TypeScript 双语言"
+  ],
+  "tags": ["llm-framework", "langgraph", "agents", "python"],
+  "status": "draft",
+  "distributed_to": []
+}

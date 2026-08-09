@@ -1,0 +1,17 @@
+{
+  "id": "gh-20260720-008",
+  "title": "DietrichGebert/ponytail",
+  "source_url": "https://github.com/DietrichGebert/ponytail",
+  "source_type": "github_trending",
+  "collected_at": "2026-07-20T00:00:00Z",
+  "analyzed_at": "2026-07-20T14:00:00Z",
+  "summary": "让 AI Agent 像资深工程师一样精简易懂的编程工具，核心理念 YAGNI，2026 年 6 月发布后增长极其迅猛。",
+  "key_points": [
+    "8.6 万 stars，2026 年 6 月发布，增长极其迅猛",
+    "核心理念 YAGNI——不写的代码才是好代码",
+    "可作为 Claude Code 插件使用"
+  ],
+  "tags": ["developer-tools", "ai-coding", "claude", "yagni"],
+  "status": "draft",
+  "distributed_to": []
+}

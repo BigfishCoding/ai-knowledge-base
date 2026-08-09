@@ -1,0 +1,151 @@
+{
+  "source": "knowledge/raw/github-trending-2026-07-20.json",
+  "analyzed_at": "2026-07-20T14:00:00Z",
+  "items": [
+    {
+      "title": "NousResearch/hermes-agent",
+      "url": "https://github.com/NousResearch/hermes-agent",
+      "source": "github_trending",
+      "summary": "多模型 AI Agent 框架，支持 Claude 和 ChatGPT 等主流 LLM",
+      "highlights": [
+        "21.7 万 stars，AI Agent 框架中仅次于 AutoGPT",
+        "支持 Claude、ChatGPT、Codex 等多种模型后端",
+        "MIT 开源，社区活跃，40K+ forks"
+      ],
+      "score": 8,
+      "score_reason": "成熟的 multi-agent 框架，模型兼容性广，社区生态庞大，适合各类 Agent 场景落地",
+      "tags": ["ai-agent", "framework", "multi-model", "open-source"]
+    },
+    {
+      "title": "n8n-io/n8n",
+      "url": "https://github.com/n8n-io/n8n",
+      "source": "github_trending",
+      "summary": "Fair-code 工作流平台，内置 AI 原生能力和 MCP 支持",
+      "highlights": [
+        "19.7 万 stars，低代码自动化领域的标杆项目",
+        "原生集成 MCP 协议客户端和服务端",
+        "400+ 集成，支持自托管和云部署"
+      ],
+      "score": 7,
+      "score_reason": "实用的低代码自动化平台，AI 功能持续增强，MCP 支持使其在 Agent 工作流领域更具竞争力",
+      "tags": ["workflow", "automation", "mcp", "low-code"]
+    },
+    {
+      "title": "Significant-Gravitas/AutoGPT",
+      "url": "https://github.com/Significant-Gravitas/AutoGPT",
+      "source": "github_trending",
+      "summary": "自主 AI Agent 先驱框架，支持 GPT/Claude/LLaMA 多模型",
+      "highlights": [
+        "18.5 万 stars，自主 Agent 领域的开创性项目",
+        "支持 GPT-4、Claude、LLaMA 等多种 LLM 后端",
+        "46K+ forks，被广泛 Fork 和二次开发"
+      ],
+      "score": 8,
+      "score_reason": "自主 Agent 概念的奠基者，持续迭代，多模型支持和生态成熟度极高",
+      "tags": ["autonomous-agents", "ai-agent", "multi-model", "python"]
+    },
+    {
+      "title": "langgenius/dify",
+      "url": "https://github.com/langgenius/dify",
+      "source": "github_trending",
+      "summary": "LLM 应用开发平台，融合 Agentic Workflow 和 RAG 管道",
+      "highlights": [
+        "14.9 万 stars，增长最快的 LLM 应用平台之一",
+        "同时支持 Agentic workflow、RAG 管道和 MCP 协议",
+        "支持云端和自托管部署，企业级功能完善"
+      ],
+      "score": 8,
+      "score_reason": "功能最全面的 LLM 应用平台之一，Agent+RAG 一体化设计降低开发门槛，企业级能力突出",
+      "tags": ["llm-platform", "rag", "agentic-workflow", "low-code"]
+    },
+    {
+      "title": "langchain-ai/langchain",
+      "url": "https://github.com/langchain-ai/langchain",
+      "source": "github_trending",
+      "summary": "业界标准 LLM 框架，支持多 Agent 编排和 LangGraph",
+      "highlights": [
+        "14.2 万 stars，LLM 开发框架的行业标准",
+        "生态包括 LangGraph（工作流）、LangSmith（可观测性）",
+        "支持 Python 和 TypeScript 双语言"
+      ],
+      "score": 8,
+      "score_reason": "LLM 开发的事实标准，完善的 Agent 编排和 RAG 能力，LangGraph 工作流引擎创新性强",
+      "tags": ["llm-framework", "langgraph", "agents", "python"]
+    },
+    {
+      "title": "Shubhamsaboo/awesome-llm-apps",
+      "url": "https://github.com/Shubhamsaboo/awesome-llm-apps",
+      "source": "github_trending",
+      "summary": "100+ 可运行 AI Agent 和 RAG 应用参考集合",
+      "highlights": [
+        "12.4 万 stars，快速增长的 LLM 应用参考库",
+        "覆盖 Agent、RAG、工具调用等多种场景",
+        "每个应用可独立克隆和定制部署"
+      ],
+      "score": 6,
+      "score_reason": "丰富且可直接运行的应用集合，参考价值高但以聚合为主，创新性有限",
+      "tags": ["llm-apps", "rag", "reference", "tutorial"]
+    },
+    {
+      "title": "browser-use/browser-use",
+      "url": "https://github.com/browser-use/browser-use",
+      "source": "github_trending",
+      "summary": "让 AI Agent 操控浏览器的自动化工具",
+      "highlights": [
+        "10.5 万 stars，GitHub 2024 年增长最快的新项目之一",
+        "基于 Playwright 实现，支持复杂网页交互",
+        "MIT 开源，社区贡献活跃"
+      ],
+      "score": 7,
+      "score_reason": "解决 Agent 落地中的关键瓶颈——网页交互，实用价值高，社区认可度强",
+      "tags": ["browser-automation", "ai-agent", "playwright", "python"]
+    },
+    {
+      "title": "DietrichGebert/ponytail",
+      "url": "https://github.com/DietrichGebert/ponytail",
+      "source": "github_trending",
+      "summary": "让 AI Agent 像资深工程师一样精简易懂的编程工具",
+      "highlights": [
+        "8.6 万 stars，2026 年 6 月发布，增长极其迅猛",
+        "核心理念 YAGNI——不写的代码才是好代码",
+        "可作为 Claude Code 插件使用"
+      ],
+      "score": 7,
+      "score_reason": "理念新颖（AI 编程的极简主义），增长速度惊人，有可能影响 AI 编程工具的设计范式",
+      "tags": ["developer-tools", "ai-coding", "claude", "yagni"]
+    },
+    {
+      "title": "infiniflow/ragflow",
+      "url": "https://github.com/infiniflow/ragflow",
+      "source": "github_trending",
+      "summary": "开源 RAG 引擎，深度融合检索增强与 Agent 能力",
+      "highlights": [
+        "8.5 万 stars，领先的开源 RAG 引擎",
+        "融合 Agent Harness 和 Context Engineering 理念",
+        "支持深度文档解析和知识编译"
+      ],
+      "score": 7,
+      "score_reason": "RAG 领域最活跃的开源项目之一，Agent+Context 的创新架构值得关注",
+      "tags": ["rag", "retrieval-augmented-generation", "context-engine", "go"]
+    },
+    {
+      "title": "OpenHands/OpenHands",
+      "url": "https://github.com/OpenHands/OpenHands",
+      "source": "github_trending",
+      "summary": "AI 驱动软件开发平台，自主完成编码/调试/部署",
+      "highlights": [
+        "8.4 万 stars，AI 编程领域的头部项目",
+        "支持完整的 SDLC 流程：编码、调试、部署",
+        "基于事件驱动的 Agent 架构"
+      ],
+      "score": 7,
+      "score_reason": "成熟的 AI 软件开发平台，覆盖完整开发生命周期，在 SWE-bench 等评测中表现优异",
+      "tags": ["ai-coding", "software-development", "devops", "agents"]
+    }
+  ],
+  "trends": {
+    "topics": ["AI Agent 框架", "RAG 与检索增强", "AI 编程工具", "工作流自动化"],
+    "emerging": ["MCP 协议在主流工具中快速普及", "AI 编程工具向极简主义演进（ponytail）"],
+    "note": "本周 Top 10 中 Agent 框架类项目占 6 席，AI 编程工具占 3 席，RAG 引擎占 1 席。Agent 化与工具调用（browser-use、MCP）成为两大主线。Ponytail 作为 2026 年 6 月才发布的新项目已进入 Top 10，值得持续跟踪。"
+  }
+}
