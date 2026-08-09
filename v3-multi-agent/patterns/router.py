@@ -21,6 +21,7 @@ import os
 import re
 import sys
 import http.client
+import ssl
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -37,7 +38,12 @@ logger = logging.getLogger(__name__)
 
 # ── 常量 ──────────────────────────────────────────────────────────────────
 
-GITHUB_SEARCH_API = "https://api.github.com/search/repositories"
+GITHUB_SEARCH_API: str
+_GITHUB_MIRROR = os.environ.get("GITHUB_API_MIRROR", "")
+if _GITHUB_MIRROR:
+    GITHUB_SEARCH_API = f"{_GITHUB_MIRROR}/search/repositories"
+else:
+    GITHUB_SEARCH_API = "https://api.github.com/search/repositories"
 GITHUB_USER_AGENT = "ai-knowledge-base/1.0"
 
 ENV_GITHUB_TOKEN = "GITHUB_TOKEN"
@@ -192,6 +198,7 @@ def _handle_github_search(query: str) -> str:
         TimeoutError,
         http.client.RemoteDisconnected,
         ConnectionError,
+        ssl.SSLError,
     ) as exc:
         logger.error("GitHub Search API 调用失败: %s", exc)
         return f"GitHub 搜索失败：{exc}"

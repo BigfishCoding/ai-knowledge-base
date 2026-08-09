@@ -39,9 +39,11 @@ logger = logging.getLogger(__name__)
 
 # ── 常量 ──────────────────────────────────────────────────────────────────
 
-GITHUB_SEARCH_API = os.environ.get(
-    "GITHUB_API_MIRROR",
-    "https://api.github.com/search/repositories",
+_GITHUB_MIRROR = os.environ.get("GITHUB_API_MIRROR", "")
+GITHUB_SEARCH_API = (
+    f"{_GITHUB_MIRROR}/search/repositories"
+    if _GITHUB_MIRROR
+    else "https://api.github.com/search/repositories"
 )
 GITHUB_AI_QUERY = "LLM OR AI OR agent"
 GITHUB_USER_AGENT = "ai-knowledge-base/1.0"
@@ -88,15 +90,18 @@ def _make_slug(title: str) -> str:
     return slug or "untitled"
 
 
-def _build_github_request(query: str, per_page: int = GITHUB_RESULT_LIMIT) -> urllib.request.Request:
-    """构建带鉴权头的 GitHub Search API 请求。
+def _build_github_request(
+    query: str, per_page: int = GITHUB_RESULT_LIMIT
+) -> tuple[urllib.request.Request, urllib.request.OpenerDirector | None]:
+    """构建带鉴权头的 GitHub Search API 请求及可选的代理 opener。
 
     Args:
         query: 搜索关键词（将用 urllib.parse.quote 编码）。
         per_page: 单源采集数量，默认 :data:`GITHUB_RESULT_LIMIT`。
 
     Returns:
-        配置好的 Request 对象。
+        ``(request, opener)`` 元组：request 为配置好的 Request 对象，
+        opener 为代理 opener（未配置代理时为 None）。
     """
     encoded = urllib.parse.quote(query, safe="")
     url = (
@@ -111,14 +116,14 @@ def _build_github_request(query: str, per_page: int = GITHUB_RESULT_LIMIT) -> ur
     if token:
         request.add_header("Authorization", f"token {token}")
 
-    # 配置代理（从环境变量读取）
+    # 配置代理（从环境变量读取，返回独立 opener 避免全局副作用）
     proxy = os.environ.get("HTTPS_PROXY") or os.environ.get("HTTP_PROXY")
+    opener: urllib.request.OpenerDirector | None = None
     if proxy:
         proxy_handler = urllib.request.ProxyHandler({"https": proxy, "http": proxy})
         opener = urllib.request.build_opener(proxy_handler)
-        urllib.request.install_opener(opener)
 
-    return request
+    return request, opener
 
 
 def _mock_sources() -> list[dict[str, Any]]:
@@ -175,11 +180,15 @@ def collect_node(state: KBState) -> dict[str, Any]:
     logger.info("[collect_node] 开始采集 GitHub AI 相关仓库")
     plan = state.get("plan", {}) or {}
     per_page = int(plan.get("per_source_limit", 10))
-    request = _build_github_request(GITHUB_AI_QUERY, per_page)
+    request, opener = _build_github_request(GITHUB_AI_QUERY, per_page)
 
     try:
-        with urllib.request.urlopen(request, timeout=QUERY_TIMEOUT_SECONDS) as response:
-            payload = json.loads(response.read().decode("utf-8"))
+        if opener is not None:
+            with opener.open(request, timeout=QUERY_TIMEOUT_SECONDS) as response:
+                payload = json.loads(response.read().decode("utf-8"))
+        else:
+            with urllib.request.urlopen(request, timeout=QUERY_TIMEOUT_SECONDS) as response:
+                payload = json.loads(response.read().decode("utf-8"))
     except (
         urllib.error.URLError,
         urllib.error.HTTPError,
