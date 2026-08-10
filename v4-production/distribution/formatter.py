@@ -779,21 +779,25 @@ def generate_daily_digest(
     knowledge_dir: str | Path = DEFAULT_KNOWLEDGE_DIR,
     date: str | None = None,
     top_n: int = DEFAULT_TOP_N,
+    score_threshold: float = 0.0,
 ) -> dict[str, Any] | str:
     """生成指定日期的多平台知识简报（按 category 分组）。
 
-    按 ``{date}-*.json`` 扫描知识条目目录，先按相关性评分降序取前 N 条，
-    再按 ``category`` 分组展示：组内按 ``relevance_score`` 降序，组间按文章数
-    降序；单个分组最多展示 :data:`CATEGORY_LIMIT` 篇，超出以 ``+N more`` 提示。
+    按 ``{date}-*.json`` 扫描知识条目目录，低于 ``score_threshold`` 的
+    低质量文章先被过滤，再按相关性评分降序取前 N 条，随后按 ``category``
+    分组展示：组内按 ``relevance_score`` 降序，组间按文章数降序；单个分组
+    最多展示 :data:`CATEGORY_LIMIT` 篇，超出以 ``+N more`` 提示。
     Telegram 简报超出 :data:`TELEGRAM_DIGEST_MAX_LENGTH` 时，先截断各篇正文，
     再逐档减少每类展示篇数，并在末尾追加 ``📖 完整简报`` 入口。
     正文优先使用 ``key_insight``，缺失时回退到完整 ``summary``。
-    当日无文章时返回空提示。
+    当日无文章或全部低于阈值时返回空提示。
 
     Args:
         knowledge_dir: 知识条目目录，默认 ``knowledge/articles``。
         date: 日期（``YYYY-MM-DD``）；None 时使用今天的 UTC 日期。
         top_n: 先按相关性评分降序截取前 N 条，默认 5。
+        score_threshold: 相关性评分下限（0-1）；低于该值的文章直接过滤，
+            默认 0.0 表示不过滤。
 
     Returns:
         当日无文章时返回 ``"📭 {date} 暂无新增知识条目"``；
@@ -804,6 +808,7 @@ def generate_daily_digest(
         date = datetime.now(timezone.utc).strftime(DATE_FORMAT)
 
     articles = _load_articles(target, date)
+    articles = [article for article in articles if _score(article) >= score_threshold]
     if not articles:
         return EMPTY_DIGEST_MESSAGE.format(date=date)
 

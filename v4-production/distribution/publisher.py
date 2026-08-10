@@ -528,6 +528,7 @@ async def publish_daily_digest(
     knowledge_dir: str | Path = DEFAULT_KNOWLEDGE_DIR,
     date: str | None = None,
     top_n: int = DEFAULT_TOP_N,
+    score_threshold: float = 0.0,
 ) -> list[PublishResult]:
     """生成并并发发布当日知识简报到所有已配置渠道。
 
@@ -538,11 +539,15 @@ async def publish_daily_digest(
         knowledge_dir: 知识条目目录，透传给 ``generate_daily_digest``。
         date: 日期（``YYYY-MM-DD``）；None 时使用今天 UTC。
         top_n: 简报取前 N 条，透传给 ``generate_daily_digest``。
+        score_threshold: 相关性评分下限（0-1），低于该值的文章过滤，
+            透传给 ``generate_daily_digest``，默认 0.0 不过滤。
 
     Returns:
         各渠道的发布结果列表；当日无条目或无渠道配置时返回空列表。
     """
-    digest = generate_daily_digest(knowledge_dir, date, top_n)
+    digest = generate_daily_digest(
+        knowledge_dir, date, top_n, score_threshold=score_threshold
+    )
     if isinstance(digest, str):
         logger.info("当日无知识条目，跳过发布: %s", digest)
         return []
