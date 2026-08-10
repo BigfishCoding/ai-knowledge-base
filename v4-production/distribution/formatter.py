@@ -3,7 +3,7 @@
 将单篇知识条目 JSON 渲染为多平台文本/卡片，供 ``publisher`` 推送消费：
 
 - :func:`json_to_markdown`: 通用 Markdown 文本
-- :func:`json_to_clawbot`: ClawBot MarkdownV2 文本（特殊字符转义）
+- :func:`json_to_telegram`: Telegram MarkdownV2 文本（特殊字符转义）
 - :func:`json_to_feishu`: 飞书 interactive 卡片字典
 - :func:`generate_daily_digest`: 按日期聚合并按 category 分组的 Top N 多平台简报
 - :func:`digest_from_index`: 基于 index.json 的轻量级预览（秒级返回）
@@ -49,26 +49,26 @@ INDEX_ID_DATE_PATTERN = re.compile(
 )
 """从条目 id 中提取日期的正则（兼容 ``2026-04-11-000`` 与 ``gh-20260720-003``）。"""
 
-CLAWBOT_ESCAPE_CHARS = r"_*[]()~`>#+-=|{}.!"
-CLAWBOT_ESCAPE_PATTERN = re.compile(fr"[{re.escape(CLAWBOT_ESCAPE_CHARS)}]")
-CLAWBOT_CODE_MARKER = "\\`"
+TELEGRAM_ESCAPE_CHARS = r"_*[]()~`>#+-=|{}.!"
+TELEGRAM_ESCAPE_PATTERN = re.compile(fr"[{re.escape(TELEGRAM_ESCAPE_CHARS)}]")
+TELEGRAM_CODE_MARKER = "\\`"
 
-CLAWBOT_MAX_MESSAGE_LENGTH = 4096
-"""ClawBot 单条消息的字符上限。"""
-CLAWBOT_SINGLE_TRUNCATE_THRESHOLD = 3500
+TELEGRAM_MAX_MESSAGE_LENGTH = 4096
+"""Telegram 单条消息的字符上限。"""
+TELEGRAM_SINGLE_TRUNCATE_THRESHOLD = 3500
 """单篇文章格式化后超过该长度时触发正文截断（预留标题与元信息空间）。"""
-CLAWBOT_SUMMARY_TRUNCATE_LENGTH = 500
+TELEGRAM_SUMMARY_TRUNCATE_LENGTH = 500
 """单篇文章正文超限时的截断保留长度（字符）。"""
-CLAWBOT_TRUNCATE_SUFFIX = "...（点击查看完整）"
+TELEGRAM_TRUNCATE_SUFFIX = "...（点击查看完整）"
 """正文被截断时追加的提示后缀。"""
 
-CLAWBOT_DIGEST_MAX_LENGTH = 4000
-"""ClawBot 每日简报的字符上限。"""
-CLAWBOT_DIGEST_BODY_LIMIT = 300
+TELEGRAM_DIGEST_MAX_LENGTH = 4000
+"""Telegram 每日简报的字符上限。"""
+TELEGRAM_DIGEST_BODY_LIMIT = 300
 """简报超限时每篇文章正文的截断保留长度（字符）。"""
-CLAWBOT_DIGEST_FOOTER_TEMPLATE = "📖 完整简报：{link}"
+TELEGRAM_DIGEST_FOOTER_TEMPLATE = "📖 完整简报：{link}"
 """简报末尾的完整版入口模板。"""
-CLAWBOT_DIGEST_FOOTER_LINK = "#"
+TELEGRAM_DIGEST_FOOTER_LINK = "#"
 """完整版简报链接占位符（尚未接入真实链接）。"""
 
 SUMMARY_FALLBACK_LENGTH = 100
@@ -254,8 +254,8 @@ def _relevance_status(score: float) -> tuple[str, str]:
     return EMOJI_LOW, TEMPLATE_RED
 
 
-def _escape_clawbot(text: str) -> str:
-    """转义 ClawBot MarkdownV2 特殊字符。
+def _escape_telegram(text: str) -> str:
+    """转义 Telegram MarkdownV2 特殊字符。
 
     Args:
         text: 原始文本。
@@ -263,7 +263,7 @@ def _escape_clawbot(text: str) -> str:
     Returns:
         所有特殊字符前加反斜杠的转义文本。
     """
-    return CLAWBOT_ESCAPE_PATTERN.sub(r"\\\g<0>", text)
+    return TELEGRAM_ESCAPE_PATTERN.sub(r"\\\g<0>", text)
 
 
 def _feishu_meta_md(article: dict[str, Any]) -> str:
@@ -369,8 +369,8 @@ def json_to_markdown(article: dict[str, Any]) -> str:
     return _markdown_article(article, MARKDOWN_HEADING_LEVEL)
 
 
-def _clawbot_body(article: dict[str, Any]) -> str:
-    """读取 ClawBot 正文：优先 key_insight，依次回退 key_points / summary。
+def _telegram_body(article: dict[str, Any]) -> str:
+    """读取 Telegram 正文：优先 key_insight，依次回退 key_points / summary。
 
     Args:
         article: 单篇知识条目字典。
@@ -400,11 +400,11 @@ def _truncate_body(text: str, max_length: int) -> str:
 
     Returns:
         未超长时原样返回；超长时截断到 ``max_length`` 并追加
-        :data:`CLAWBOT_TRUNCATE_SUFFIX`。
+        :data:`TELEGRAM_TRUNCATE_SUFFIX`。
     """
     if len(text) <= max_length:
         return text
-    return text[:max_length].rstrip() + CLAWBOT_TRUNCATE_SUFFIX
+    return text[:max_length].rstrip() + TELEGRAM_TRUNCATE_SUFFIX
 
 
 def _enforce_max_length(text: str, max_length: int) -> str:
@@ -422,7 +422,7 @@ def _enforce_max_length(text: str, max_length: int) -> str:
     return text[:max_length]
 
 
-def _render_clawbot_article(
+def _render_telegram_article(
     title: str,
     url: str,
     score: float,
@@ -431,7 +431,7 @@ def _render_clawbot_article(
     tags: str,
     body: str,
 ) -> str:
-    """渲染单篇文章的 ClawBot MarkdownV2 文本（字段均已转义）。
+    """渲染单篇文章的 Telegram MarkdownV2 文本（字段均已转义）。
 
     Args:
         title: 转义后的标题。
@@ -454,24 +454,24 @@ def _render_clawbot_article(
             "",
             body,
             "",
-            f"{CLAWBOT_CODE_MARKER}{tags}{CLAWBOT_CODE_MARKER}",
+            f"{TELEGRAM_CODE_MARKER}{tags}{TELEGRAM_CODE_MARKER}",
         ]
     )
 
 
-def json_to_clawbot(
+def json_to_telegram(
     article: dict[str, Any], summary_limit: int | None = None
 ) -> str:
-    """将单篇知识条目格式化为 ClawBot MarkdownV2 文本。
+    """将单篇知识条目格式化为 Telegram MarkdownV2 文本。
 
     特殊字符 ``_*[]()~`>#+-=|{}.!`` 会被反斜杠转义，避免被解释为格式标记；
     标签内部的空格替换为下划线。正文优先使用 ``key_insight``（一句话洞察），
     缺失时回退到完整 ``summary``。
 
-    单篇超长保护：格式化后超过 :data:`CLAWBOT_SINGLE_TRUNCATE_THRESHOLD` 时，
-    将正文截断到 :data:`CLAWBOT_SUMMARY_TRUNCATE_LENGTH` 并追加
-    :data:`CLAWBOT_TRUNCATE_SUFFIX`；最终输出不超过
-    :data:`CLAWBOT_MAX_MESSAGE_LENGTH`。
+    单篇超长保护：格式化后超过 :data:`TELEGRAM_SINGLE_TRUNCATE_THRESHOLD` 时，
+    将正文截断到 :data:`TELEGRAM_SUMMARY_TRUNCATE_LENGTH` 并追加
+    :data:`TELEGRAM_TRUNCATE_SUFFIX`；最终输出不超过
+    :data:`TELEGRAM_MAX_MESSAGE_LENGTH`。
 
     Args:
         article: 单篇知识条目 JSON 字典。
@@ -482,26 +482,26 @@ def json_to_clawbot(
     """
     score = _score(article)
     emoji, _ = _relevance_status(score)
-    title = _escape_clawbot(article["title"])
-    url = _escape_clawbot(_url(article))
-    source = _escape_clawbot(_source(article))
-    tags = " ".join(_escape_clawbot(tag.replace(" ", "_")) for tag in _tags(article))
+    title = _escape_telegram(article["title"])
+    url = _escape_telegram(_url(article))
+    source = _escape_telegram(_source(article))
+    tags = " ".join(_escape_telegram(tag.replace(" ", "_")) for tag in _tags(article))
 
-    body = _clawbot_body(article)
+    body = _telegram_body(article)
     if summary_limit is not None:
         body = _truncate_body(body, summary_limit)
 
-    text = _render_clawbot_article(
-        title, url, score, emoji, source, tags, _escape_clawbot(body)
+    text = _render_telegram_article(
+        title, url, score, emoji, source, tags, _escape_telegram(body)
     )
-    if len(text) > CLAWBOT_SINGLE_TRUNCATE_THRESHOLD:
+    if len(text) > TELEGRAM_SINGLE_TRUNCATE_THRESHOLD:
         body = _truncate_body(
-            _clawbot_body(article), CLAWBOT_SUMMARY_TRUNCATE_LENGTH
+            _telegram_body(article), TELEGRAM_SUMMARY_TRUNCATE_LENGTH
         )
-        text = _render_clawbot_article(
-            title, url, score, emoji, source, tags, _escape_clawbot(body)
+        text = _render_telegram_article(
+            title, url, score, emoji, source, tags, _escape_telegram(body)
         )
-    return _enforce_max_length(text, CLAWBOT_MAX_MESSAGE_LENGTH)
+    return _enforce_max_length(text, TELEGRAM_MAX_MESSAGE_LENGTH)
 
 
 def json_to_feishu(article: dict[str, Any]) -> dict[str, Any]:
@@ -662,13 +662,13 @@ def _render_category_markdown(
     return "\n\n".join(lines)
 
 
-def _render_category_clawbot(
+def _render_category_telegram(
     category: str,
     articles: list[dict[str, Any]],
     display_limit: int = CATEGORY_LIMIT,
     summary_limit: int | None = None,
 ) -> str:
-    """渲染单个 category 分组的 ClawBot MarkdownV2 章节。
+    """渲染单个 category 分组的 Telegram MarkdownV2 章节。
 
     Args:
         category: 分类名。
@@ -679,10 +679,10 @@ def _render_category_clawbot(
     Returns:
         含加粗分类标签、文章与 ``+N more`` 的 MarkdownV2 文本。
     """
-    label = _escape_clawbot(_category_label(category, len(articles)))
+    label = _escape_telegram(_category_label(category, len(articles)))
     lines = [f"**{label}**"]
     lines.extend(
-        json_to_clawbot(article, summary_limit)
+        json_to_telegram(article, summary_limit)
         for article in articles[:display_limit]
     )
     if len(articles) > display_limit:
@@ -690,12 +690,12 @@ def _render_category_clawbot(
     return "\n\n".join(lines)
 
 
-def _build_clawbot_digest(
+def _build_telegram_digest(
     groups: list[tuple[str, list[dict[str, Any]]]],
     display_limit: int,
     summary_limit: int | None,
 ) -> str:
-    """按给定压缩参数渲染 ClawBot 简报全文（含完整版入口）。
+    """按给定压缩参数渲染 Telegram 简报全文（含完整版入口）。
 
     Args:
         groups: ``(category, articles)`` 分组列表。
@@ -706,19 +706,19 @@ def _build_clawbot_digest(
         含分组内容与 ``📖 完整简报`` 尾注的 MarkdownV2 文本。
     """
     parts = [
-        _render_category_clawbot(category, items, display_limit, summary_limit)
+        _render_category_telegram(category, items, display_limit, summary_limit)
         for category, items in groups
     ]
-    footer = _escape_clawbot(
-        CLAWBOT_DIGEST_FOOTER_TEMPLATE.format(link=CLAWBOT_DIGEST_FOOTER_LINK)
+    footer = _escape_telegram(
+        TELEGRAM_DIGEST_FOOTER_TEMPLATE.format(link=TELEGRAM_DIGEST_FOOTER_LINK)
     )
     return "\n\n".join(parts) + "\n\n" + footer
 
 
-def _shrink_clawbot_digest(
+def _shrink_telegram_digest(
     groups: list[tuple[str, list[dict[str, Any]]]],
 ) -> str:
-    """压缩 ClawBot 简报至 :data:`CLAWBOT_DIGEST_MAX_LENGTH` 内。
+    """压缩 Telegram 简报至 :data:`TELEGRAM_DIGEST_MAX_LENGTH` 内。
 
     依次尝试：先截断每篇文章正文，再逐档减少每个分类的展示篇数；
     仍超限时做硬截断。
@@ -727,15 +727,15 @@ def _shrink_clawbot_digest(
         groups: ``(category, articles)`` 分组列表。
 
     Returns:
-        长度不超过 :data:`CLAWBOT_DIGEST_MAX_LENGTH` 的 MarkdownV2 文本。
+        长度不超过 :data:`TELEGRAM_DIGEST_MAX_LENGTH` 的 MarkdownV2 文本。
     """
     text = ""
-    for summary_limit in (None, CLAWBOT_DIGEST_BODY_LIMIT):
+    for summary_limit in (None, TELEGRAM_DIGEST_BODY_LIMIT):
         for display_limit in range(CATEGORY_LIMIT, 0, -1):
-            text = _build_clawbot_digest(groups, display_limit, summary_limit)
-            if len(text) <= CLAWBOT_DIGEST_MAX_LENGTH:
+            text = _build_telegram_digest(groups, display_limit, summary_limit)
+            if len(text) <= TELEGRAM_DIGEST_MAX_LENGTH:
                 return text
-    return text[:CLAWBOT_DIGEST_MAX_LENGTH]
+    return text[:TELEGRAM_DIGEST_MAX_LENGTH]
 
 
 def _render_category_feishu(
@@ -785,7 +785,7 @@ def generate_daily_digest(
     按 ``{date}-*.json`` 扫描知识条目目录，先按相关性评分降序取前 N 条，
     再按 ``category`` 分组展示：组内按 ``relevance_score`` 降序，组间按文章数
     降序；单个分组最多展示 :data:`CATEGORY_LIMIT` 篇，超出以 ``+N more`` 提示。
-    ClawBot 简报超出 :data:`CLAWBOT_DIGEST_MAX_LENGTH` 时，先截断各篇正文，
+    Telegram 简报超出 :data:`TELEGRAM_DIGEST_MAX_LENGTH` 时，先截断各篇正文，
     再逐档减少每类展示篇数，并在末尾追加 ``📖 完整简报`` 入口。
     正文优先使用 ``key_insight``，缺失时回退到完整 ``summary``。
     当日无文章时返回空提示。
@@ -797,7 +797,7 @@ def generate_daily_digest(
 
     Returns:
         当日无文章时返回 ``"📭 {date} 暂无新增知识条目"``；
-        否则返回 ``{"markdown": str, "clawbot": str, "feishu": dict}`` 字典。
+        否则返回 ``{"markdown": str, "telegram": str, "feishu": dict}`` 字典。
     """
     target = Path(knowledge_dir)
     if date is None:
@@ -816,7 +816,7 @@ def generate_daily_digest(
             _render_category_markdown(category, items)
             for category, items in groups
         ),
-        "clawbot": _shrink_clawbot_digest(groups),
+        "telegram": _shrink_telegram_digest(groups),
         "feishu": {
             "msg_type": MSG_TYPE_INTERACTIVE,
             "card": {
@@ -879,7 +879,7 @@ def _preview_markdown(previews: list[dict[str, Any]]) -> str:
 
 
 def _preview_telegram(date: str, previews: list[dict[str, Any]]) -> str:
-    """渲染轻量预览的 ClawBot 纯文本列表。
+    """渲染轻量预览的 Telegram 纯文本列表。
 
     Args:
         date: 日期（``YYYY-MM-DD``）。
@@ -907,7 +907,7 @@ def digest_from_index(
 
     只读取 ``knowledge/articles/index.json`` 索引，从条目 ``id`` 中提取日期
     （兼容 ``gh-20260720-003`` 与 ``2026-04-11-000`` 两种格式）并按 ``date``
-    筛选，以 ``relevance_score`` 降序取前 N 条，渲染为 Markdown 表格与 ClawBot
+    筛选，以 ``relevance_score`` 降序取前 N 条，渲染为 Markdown 表格与 Telegram
     纯文本列表。适合 Bot 快速响应"今天有什么新内容"，秒级返回。
 
     Args:
