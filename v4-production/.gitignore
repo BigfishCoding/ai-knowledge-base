@@ -1,0 +1,21 @@
+# 密钥与环境配置：禁止提交
+.env
+.env.*
+!.env.example
+
+# 知识库数据：禁止提交（AGENTS.md 红线）
+knowledge/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+*.egg-info/
+
+# 本地工具产物
+.uploads/
