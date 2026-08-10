@@ -2,7 +2,7 @@
 
 ## 1. 项目概述
 
-本项目是一个 AI 知识库助手，自动从 GitHub Trending 和 Hacker News 采集 AI/LLM/Agent 领域的技术动态，经 AI 分析后结构化存储为 JSON，并支持多渠道分发（Telegram / 飞书），帮助开发者持续追踪前沿技术趋势。
+本项目是一个 AI 知识库助手，自动从 GitHub Trending 和 Hacker News 采集 AI/LLM/Agent 领域的技术动态，经 AI 分析后结构化存储为 JSON，并支持多渠道分发（ClawBot / 飞书），帮助开发者持续追踪前沿技术趋势。
 
 ## 2. 技术栈
 
@@ -13,7 +13,7 @@
 | 工作流编排 | LangGraph |
 | 知识图谱 | OpenClaw |
 | 数据采集 | GitHub Trending API、Hacker News API |
-| 分发渠道 | Telegram Bot API、飞书 Webhook |
+| 分发渠道 | ClawBot Bot API、飞书 Webhook |
 
 ## 3. 编码规范
 
@@ -112,7 +112,7 @@ ai-knowledge-base/
   ],
   "tags": ["LLM", "MoE", "DeepSeek", "code-generation"],
   "status": "published",
-  "distributed_to": ["telegram", "feishu"]
+  "distributed_to": ["clawbot", "feishu"]
 }
 ```
 
@@ -138,12 +138,12 @@ ai-knowledge-base/
 |------|------|------|------|------|
 | **采集 Agent** | `collector` | 定时抓取 GitHub Trending 和 Hacker News 的 AI 相关内容 | 无（定时触发） | 原始数据 → `knowledge/raw/` |
 | **分析 Agent** | `analyzer` | 对原始数据进行 AI 摘要、提取要点、打标签 | `knowledge/raw/` 中的 JSON | 结构化条目 → `knowledge/articles/` |
-| **整理 Agent** | `distributor` | 将已审核的知识条目推送到 Telegram 和飞书 | `knowledge/articles/` 中 `status=published` 的条目 | 渠道推送结果 |
+| **整理 Agent** | `distributor` | 将已审核的知识条目推送到 ClawBot 和飞书 | `knowledge/articles/` 中 `status=published` 的条目 | 渠道推送结果 |
 
 ### 工作流
 
 ```
-[定时触发] → collector → raw/ → analyzer → articles/ → distributor → [Telegram / 飞书]
+[定时触发] → collector → raw/ → analyzer → articles/ → distributor → [ClawBot / 飞书]
 ```
 
 ## 7. 红线（绝对禁止）

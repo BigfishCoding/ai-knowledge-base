@@ -448,7 +448,8 @@ def _rebuild_index() -> None:
     """重建 knowledge/articles/index.json 索引。
 
     扫描目录下所有条目文件（排除 index.json），
-    汇总 id/title/summary/tags/source_url 生成检索索引。
+    汇总 id/title/category/relevance_score/summary/tags/source_url/collected_at
+    生成检索索引。
     """
     entries: list[dict[str, Any]] = []
     for path in sorted(ARTICLES_DIR.glob("*.json")):
@@ -463,9 +464,12 @@ def _rebuild_index() -> None:
             {
                 "id": entry.get("id", ""),
                 "title": entry.get("title", ""),
+                "category": entry.get("category", ""),
+                "relevance_score": entry.get("relevance_score"),
                 "summary": entry.get("summary", ""),
                 "tags": entry.get("tags", []),
                 "source_url": entry.get("source_url", ""),
+                "collected_at": entry.get("collected_at", ""),
             }
         )
 

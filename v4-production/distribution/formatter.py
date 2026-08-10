@@ -3,9 +3,10 @@
 将单篇知识条目 JSON 渲染为多平台文本/卡片，供 ``publisher`` 推送消费：
 
 - :func:`json_to_markdown`: 通用 Markdown 文本
-- :func:`json_to_telegram`: Telegram MarkdownV2 文本（特殊字符转义）
+- :func:`json_to_clawbot`: ClawBot MarkdownV2 文本（特殊字符转义）
 - :func:`json_to_feishu`: 飞书 interactive 卡片字典
-- :func:`generate_daily_digest`: 按日期聚合 Top N 条目的多平台简报
+- :func:`generate_daily_digest`: 按日期聚合并按 category 分组的 Top N 多平台简报
+- :func:`digest_from_index`: 基于 index.json 的轻量级预览（秒级返回）
 
 本模块只做格式化，不发起任何网络请求；网络与渠道调用归 ``publisher`` 负责。
 """
@@ -40,9 +41,61 @@ DEFAULT_KNOWLEDGE_DIR = "knowledge/articles"
 DEFAULT_TOP_N = 5
 INDEX_FILENAME = "index.json"
 
-TELEGRAM_ESCAPE_CHARS = r"_*[]()~`>#+-=|{}.!"
-TELEGRAM_ESCAPE_PATTERN = re.compile(fr"[{re.escape(TELEGRAM_ESCAPE_CHARS)}]")
-TELEGRAM_CODE_MARKER = "\\`"
+INDEX_MISSING_MESSAGE = "知识库索引不存在：{path}"
+INDEX_INVALID_MESSAGE = "知识库索引解析失败：{path}"
+
+INDEX_ID_DATE_PATTERN = re.compile(
+    r"(?P<year>\d{4})[-/]?(?P<month>\d{2})[-/]?(?P<day>\d{2})"
+)
+"""从条目 id 中提取日期的正则（兼容 ``2026-04-11-000`` 与 ``gh-20260720-003``）。"""
+
+CLAWBOT_ESCAPE_CHARS = r"_*[]()~`>#+-=|{}.!"
+CLAWBOT_ESCAPE_PATTERN = re.compile(fr"[{re.escape(CLAWBOT_ESCAPE_CHARS)}]")
+CLAWBOT_CODE_MARKER = "\\`"
+
+CLAWBOT_MAX_MESSAGE_LENGTH = 4096
+"""ClawBot 单条消息的字符上限。"""
+CLAWBOT_SINGLE_TRUNCATE_THRESHOLD = 3500
+"""单篇文章格式化后超过该长度时触发正文截断（预留标题与元信息空间）。"""
+CLAWBOT_SUMMARY_TRUNCATE_LENGTH = 500
+"""单篇文章正文超限时的截断保留长度（字符）。"""
+CLAWBOT_TRUNCATE_SUFFIX = "...（点击查看完整）"
+"""正文被截断时追加的提示后缀。"""
+
+CLAWBOT_DIGEST_MAX_LENGTH = 4000
+"""ClawBot 每日简报的字符上限。"""
+CLAWBOT_DIGEST_BODY_LIMIT = 300
+"""简报超限时每篇文章正文的截断保留长度（字符）。"""
+CLAWBOT_DIGEST_FOOTER_TEMPLATE = "📖 完整简报：{link}"
+"""简报末尾的完整版入口模板。"""
+CLAWBOT_DIGEST_FOOTER_LINK = "#"
+"""完整版简报链接占位符（尚未接入真实链接）。"""
+
+SUMMARY_FALLBACK_LENGTH = 100
+"""key_insight 缺失时 summary 的回退截断长度（字符）。"""
+ELLIPSIS = "..."
+"""摘要被截断时的省略号后缀。"""
+
+CATEGORY_LIMIT = 3
+"""简报中每个 category 分组最多展示的文章数，超出部分以 ``+N more`` 提示。"""
+
+DEFAULT_CATEGORY_NAME = "uncategorized"
+"""article 缺少 category 字段时使用的兜底分类名。"""
+DEFAULT_CATEGORY_EMOJI = "📌"
+"""未知分类的兜底展示图标。"""
+
+CATEGORY_EMOJIS: dict[str, str] = {
+    "framework": "🤖",
+    "agent": "🧠",
+    "rag": "📚",
+    "tool": "🛠️",
+    "mcp": "🔌",
+}
+
+MARKDOWN_HEADING_LEVEL = 2
+"""单篇 Markdown 文章使用的标题级别（``##``）。"""
+DIGEST_ARTICLE_HEADING_LEVEL = 3
+"""简报中分组内单篇文章使用的标题级别（``###``）。"""
 
 EMPTY_DIGEST_MESSAGE = "📭 {date} 暂无新增知识条目"
 
@@ -95,6 +148,95 @@ def _tags(article: dict[str, Any]) -> list[str]:
     return [str(tag) for tag in tags]
 
 
+def _source(article: dict[str, Any]) -> str:
+    """读取条目来源：优先 ``source``，缺失时回退 ``source_type``。
+
+    Args:
+        article: 单篇知识条目字典。
+
+    Returns:
+        来源字符串；两者均缺失时返回空串。
+    """
+    source = article.get("source")
+    if isinstance(source, str) and source.strip():
+        return source.strip()
+    source_type = article.get("source_type")
+    if isinstance(source_type, str) and source_type.strip():
+        return source_type.strip()
+    return ""
+
+
+def _url(article: dict[str, Any]) -> str:
+    """读取条目原文链接：优先 ``url``，缺失时回退 ``source_url``。
+
+    Args:
+        article: 单篇知识条目字典。
+
+    Returns:
+        链接字符串；两者均缺失时返回空串。
+    """
+    url = article.get("url")
+    if isinstance(url, str) and url.strip():
+        return url.strip()
+    source_url = article.get("source_url")
+    if isinstance(source_url, str) and source_url.strip():
+        return source_url.strip()
+    return ""
+
+
+def _summary(article: dict[str, Any]) -> str:
+    """读取条目的摘要文本。
+
+    Args:
+        article: 单篇知识条目字典。
+
+    Returns:
+        ``summary`` 字符串；字段缺失或非字符串时返回空串。
+    """
+    summary = article.get("summary")
+    if isinstance(summary, str):
+        return summary
+    return ""
+
+
+def _truncate_fallback(text: str) -> str:
+    """将文本截断到回退长度，超长时追加省略号。
+
+    Args:
+        text: 原始文本。
+
+    Returns:
+        未超长时原样返回；超长时截取前 :data:`SUMMARY_FALLBACK_LENGTH`
+        字符并追加 ``...``。
+    """
+    if len(text) > SUMMARY_FALLBACK_LENGTH:
+        return text[:SUMMARY_FALLBACK_LENGTH].rstrip() + ELLIPSIS
+    return text
+
+
+def _insight(article: dict[str, Any]) -> str:
+    """读取条目的核心洞察，缺失时依次回退到要点/摘要截断。
+
+    Args:
+        article: 单篇知识条目字典。
+
+    Returns:
+        依次回退：``key_insight`` → ``key_points``（分号连接）→ ``summary``；
+        后两者超长时截断到 :data:`SUMMARY_FALLBACK_LENGTH` 并追加 ``...``。
+    """
+    insight = article.get("key_insight")
+    if isinstance(insight, str) and insight.strip():
+        return insight.strip()
+
+    points = article.get("key_points")
+    if isinstance(points, list):
+        text = "；".join(str(point) for point in points)
+        if text.strip():
+            return _truncate_fallback(text)
+
+    return _truncate_fallback(_summary(article))
+
+
 def _relevance_status(score: float) -> tuple[str, str]:
     """将相关性评分映射为展示状态。
 
@@ -112,8 +254,8 @@ def _relevance_status(score: float) -> tuple[str, str]:
     return EMOJI_LOW, TEMPLATE_RED
 
 
-def _escape_telegram(text: str) -> str:
-    """转义 Telegram MarkdownV2 特殊字符。
+def _escape_clawbot(text: str) -> str:
+    """转义 ClawBot MarkdownV2 特殊字符。
 
     Args:
         text: 原始文本。
@@ -121,7 +263,7 @@ def _escape_telegram(text: str) -> str:
     Returns:
         所有特殊字符前加反斜杠的转义文本。
     """
-    return TELEGRAM_ESCAPE_PATTERN.sub(r"\\\g<0>", text)
+    return CLAWBOT_ESCAPE_PATTERN.sub(r"\\\g<0>", text)
 
 
 def _feishu_meta_md(article: dict[str, Any]) -> str:
@@ -137,7 +279,7 @@ def _feishu_meta_md(article: dict[str, Any]) -> str:
     emoji, _ = _relevance_status(score)
     return (
         f"{emoji} **相关性**：{score:.2f} · "
-        f"**来源**：{article['source']} · **日期**：{_article_date(article)}"
+        f"**来源**：{_source(article)} · **日期**：{_article_date(article)}"
     )
 
 
@@ -166,9 +308,9 @@ def _feishu_article_block(article: dict[str, Any]) -> dict[str, Any]:
         [
             f"**{article['title']}**",
             _feishu_meta_md(article),
-            article["summary"],
+            _insight(article),
             _feishu_tags_md(article),
-            f"[原文链接]({article['url']})",
+            f"[原文链接]({_url(article)})",
         ]
     )
     return {"tag": "div", "text": {"tag": "lark_md", "content": content}}
@@ -177,13 +319,15 @@ def _feishu_article_block(article: dict[str, Any]) -> dict[str, Any]:
 # ── 单篇格式化 ─────────────────────────────────────────────────────────────
 
 
-def json_to_markdown(article: dict[str, Any]) -> str:
-    """将单篇知识条目格式化为 Markdown 文本。
+def _markdown_article(article: dict[str, Any], heading_level: int) -> str:
+    """按指定标题级别渲染单篇文章的 Markdown 文本。
 
-    包含标题、来源、日期、相关性评分（含状态图标）、标签、摘要与原文链接。
+    含标题、来源、日期、相关性评分（含状态图标）、标签、核心洞察与原文链接。
+    正文优先使用 ``key_insight``（一句话洞察），缺失时回退到摘要截断。
 
     Args:
-        article: 单篇知识条目 JSON 字典。
+        article: 单篇知识条目字典。
+        heading_level: 标题级别（2 表示 ``##``，3 表示 ``###``）。
 
     Returns:
         渲染后的 Markdown 文本。
@@ -192,43 +336,115 @@ def json_to_markdown(article: dict[str, Any]) -> str:
     emoji, _ = _relevance_status(score)
     date = _article_date(article)
     tags = " / ".join(_tags(article))
+    heading = "#" * heading_level
 
     return "\n".join(
         [
-            f"## {article['title']}",
+            f"{heading} {article['title']}",
             "",
-            f"- **来源**：{article['source']}",
+            f"- **来源**：{_source(article)}",
             f"- **日期**：{date}",
             f"- **相关性**：{emoji} {score:.2f}",
             f"- **标签**：{tags}",
             "",
-            article["summary"],
+            _insight(article),
             "",
-            f"🔗 原文链接：{article['url']}",
+            f"🔗 原文链接：{_url(article)}",
         ]
     )
 
 
-def json_to_telegram(article: dict[str, Any]) -> str:
-    """将单篇知识条目格式化为 Telegram MarkdownV2 文本。
+def json_to_markdown(article: dict[str, Any]) -> str:
+    """将单篇知识条目格式化为 Markdown 文本。
 
-    特殊字符 ``_*[]()~`>#+-=|{}.!`` 会被反斜杠转义，避免被 Telegram 解释为
-    格式标记；标签内部的空格替换为下划线。
+    包含标题、来源、日期、相关性评分（含状态图标）、标签、核心洞察与原文链接。
+    正文优先使用 ``key_insight``（一句话洞察），缺失时回退到摘要截断。
 
     Args:
         article: 单篇知识条目 JSON 字典。
 
     Returns:
-        渲染后的 MarkdownV2 文本。
+        渲染后的 Markdown 文本。
     """
-    score = _score(article)
-    emoji, _ = _relevance_status(score)
-    title = _escape_telegram(article["title"])
-    url = _escape_telegram(article["url"])
-    summary = _escape_telegram(article["summary"])
-    source = _escape_telegram(article["source"])
-    tags = " ".join(_escape_telegram(tag.replace(" ", "_")) for tag in _tags(article))
+    return _markdown_article(article, MARKDOWN_HEADING_LEVEL)
 
+
+def _clawbot_body(article: dict[str, Any]) -> str:
+    """读取 ClawBot 正文：优先 key_insight，依次回退 key_points / summary。
+
+    Args:
+        article: 单篇知识条目字典。
+
+    Returns:
+        ``key_insight`` 文本（去除首尾空白）；缺失/为空时回退到
+        ``key_points``（分号连接）；再缺失时返回 ``summary`` 原文
+        （非字符串时返回空串）。
+    """
+    insight = article.get("key_insight")
+    if isinstance(insight, str) and insight.strip():
+        return insight.strip()
+    points = article.get("key_points")
+    if isinstance(points, list):
+        text = "；".join(str(point) for point in points)
+        if text.strip():
+            return text
+    return _summary(article)
+
+
+def _truncate_body(text: str, max_length: int) -> str:
+    """按需截断正文，超长时追加查看提示。
+
+    Args:
+        text: 原始正文。
+        max_length: 保留的最大字符数。
+
+    Returns:
+        未超长时原样返回；超长时截断到 ``max_length`` 并追加
+        :data:`CLAWBOT_TRUNCATE_SUFFIX`。
+    """
+    if len(text) <= max_length:
+        return text
+    return text[:max_length].rstrip() + CLAWBOT_TRUNCATE_SUFFIX
+
+
+def _enforce_max_length(text: str, max_length: int) -> str:
+    """硬性截断文本，确保不超过指定长度。
+
+    Args:
+        text: 原始文本。
+        max_length: 允许的最大字符数。
+
+    Returns:
+        超长时截取前 ``max_length`` 字符，否则原样返回。
+    """
+    if len(text) <= max_length:
+        return text
+    return text[:max_length]
+
+
+def _render_clawbot_article(
+    title: str,
+    url: str,
+    score: float,
+    emoji: str,
+    source: str,
+    tags: str,
+    body: str,
+) -> str:
+    """渲染单篇文章的 ClawBot MarkdownV2 文本（字段均已转义）。
+
+    Args:
+        title: 转义后的标题。
+        url: 转义后的原文链接。
+        score: 相关性评分。
+        emoji: 相关性状态图标。
+        source: 转义后的来源。
+        tags: 转义并拼接后的标签。
+        body: 转义后的正文。
+
+    Returns:
+        组装完成的 MarkdownV2 文本。
+    """
     return "\n".join(
         [
             f"*[{title}]({url})*",
@@ -236,11 +452,56 @@ def json_to_telegram(article: dict[str, Any]) -> str:
             f"{emoji} *相关性*：{score:.2f}",
             f"*来源*：{source}",
             "",
-            summary,
+            body,
             "",
-            f"{TELEGRAM_CODE_MARKER}{tags}{TELEGRAM_CODE_MARKER}",
+            f"{CLAWBOT_CODE_MARKER}{tags}{CLAWBOT_CODE_MARKER}",
         ]
     )
+
+
+def json_to_clawbot(
+    article: dict[str, Any], summary_limit: int | None = None
+) -> str:
+    """将单篇知识条目格式化为 ClawBot MarkdownV2 文本。
+
+    特殊字符 ``_*[]()~`>#+-=|{}.!`` 会被反斜杠转义，避免被解释为格式标记；
+    标签内部的空格替换为下划线。正文优先使用 ``key_insight``（一句话洞察），
+    缺失时回退到完整 ``summary``。
+
+    单篇超长保护：格式化后超过 :data:`CLAWBOT_SINGLE_TRUNCATE_THRESHOLD` 时，
+    将正文截断到 :data:`CLAWBOT_SUMMARY_TRUNCATE_LENGTH` 并追加
+    :data:`CLAWBOT_TRUNCATE_SUFFIX`；最终输出不超过
+    :data:`CLAWBOT_MAX_MESSAGE_LENGTH`。
+
+    Args:
+        article: 单篇知识条目 JSON 字典。
+        summary_limit: 正文最大长度（字符）；None 表示不额外限制。
+
+    Returns:
+        渲染后的 MarkdownV2 文本。
+    """
+    score = _score(article)
+    emoji, _ = _relevance_status(score)
+    title = _escape_clawbot(article["title"])
+    url = _escape_clawbot(_url(article))
+    source = _escape_clawbot(_source(article))
+    tags = " ".join(_escape_clawbot(tag.replace(" ", "_")) for tag in _tags(article))
+
+    body = _clawbot_body(article)
+    if summary_limit is not None:
+        body = _truncate_body(body, summary_limit)
+
+    text = _render_clawbot_article(
+        title, url, score, emoji, source, tags, _escape_clawbot(body)
+    )
+    if len(text) > CLAWBOT_SINGLE_TRUNCATE_THRESHOLD:
+        body = _truncate_body(
+            _clawbot_body(article), CLAWBOT_SUMMARY_TRUNCATE_LENGTH
+        )
+        text = _render_clawbot_article(
+            title, url, score, emoji, source, tags, _escape_clawbot(body)
+        )
+    return _enforce_max_length(text, CLAWBOT_MAX_MESSAGE_LENGTH)
 
 
 def json_to_feishu(article: dict[str, Any]) -> dict[str, Any]:
@@ -273,7 +534,7 @@ def json_to_feishu(article: dict[str, Any]) -> dict[str, Any]:
                 },
                 {
                     "tag": "div",
-                    "text": {"tag": "lark_md", "content": article["summary"]},
+                    "text": {"tag": "lark_md", "content": _summary(article)},
                 },
                 {
                     "tag": "div",
@@ -283,7 +544,7 @@ def json_to_feishu(article: dict[str, Any]) -> dict[str, Any]:
                     "tag": "div",
                     "text": {
                         "tag": "lark_md",
-                        "content": f"[原文链接]({article['url']})",
+                        "content": f"[原文链接]({_url(article)})",
                     },
                 },
             ],
@@ -317,24 +578,226 @@ def _load_articles(knowledge_dir: Path, date: str) -> list[dict[str, Any]]:
     return articles
 
 
+def _category_emoji(category: str) -> str:
+    """返回分类对应的展示 emoji。
+
+    Args:
+        category: 分类名（如 ``framework``）。
+
+    Returns:
+        已知分类的 emoji；未知分类回退 :data:`DEFAULT_CATEGORY_EMOJI`。
+    """
+    return CATEGORY_EMOJIS.get(category, DEFAULT_CATEGORY_EMOJI)
+
+
+def _category_label(category: str, count: int) -> str:
+    """构建分类分组的展示标签（含 emoji 与篇数）。
+
+    Args:
+        category: 分类名。
+        count: 该分类下文章总数。
+
+    Returns:
+        形如 ``🤖 framework（3篇）`` 的标签文本。
+    """
+    return f"{_category_emoji(category)} {category}（{count}篇）"
+
+
+def _more_line(count: int) -> str:
+    """构建分类超限时的 ``+N more`` 提示行。
+
+    Args:
+        count: 未展示的文章数。
+
+    Returns:
+        形如 ``+3 more`` 的文本。
+    """
+    return f"+{count} more"
+
+
+def _group_by_category(
+    articles: list[dict[str, Any]],
+) -> list[tuple[str, list[dict[str, Any]]]]:
+    """按 category 分组并排序。
+
+    - 组内按 ``relevance_score`` 降序
+    - 组间按文章数降序（文章数相同时按分类名升序）
+
+    Args:
+        articles: 知识条目列表。
+
+    Returns:
+        ``(category, articles)`` 元组列表，各组已排好序。
+    """
+    groups: dict[str, list[dict[str, Any]]] = {}
+    for article in articles:
+        category = str(article.get("category", DEFAULT_CATEGORY_NAME))
+        groups.setdefault(category, []).append(article)
+
+    for items in groups.values():
+        items.sort(key=_score, reverse=True)
+
+    return sorted(groups.items(), key=lambda pair: (-len(pair[1]), pair[0]))
+
+
+def _render_category_markdown(
+    category: str, articles: list[dict[str, Any]]
+) -> str:
+    """渲染单个 category 分组的 Markdown 章节。
+
+    Args:
+        category: 分类名。
+        articles: 该分类下的文章列表（已按相关性降序）。
+
+    Returns:
+        含二级标题、三级标题文章与 ``+N more`` 的 Markdown 文本。
+    """
+    lines = [f"## {_category_label(category, len(articles))}"]
+    lines.extend(
+        _markdown_article(article, DIGEST_ARTICLE_HEADING_LEVEL)
+        for article in articles[:CATEGORY_LIMIT]
+    )
+    if len(articles) > CATEGORY_LIMIT:
+        lines.append(_more_line(len(articles) - CATEGORY_LIMIT))
+    return "\n\n".join(lines)
+
+
+def _render_category_clawbot(
+    category: str,
+    articles: list[dict[str, Any]],
+    display_limit: int = CATEGORY_LIMIT,
+    summary_limit: int | None = None,
+) -> str:
+    """渲染单个 category 分组的 ClawBot MarkdownV2 章节。
+
+    Args:
+        category: 分类名。
+        articles: 该分类下的文章列表（已按相关性降序）。
+        display_limit: 该分类最多展示的文章数，默认 :data:`CATEGORY_LIMIT`。
+        summary_limit: 每篇文章正文最大长度（字符）；None 表示不额外限制。
+
+    Returns:
+        含加粗分类标签、文章与 ``+N more`` 的 MarkdownV2 文本。
+    """
+    label = _escape_clawbot(_category_label(category, len(articles)))
+    lines = [f"**{label}**"]
+    lines.extend(
+        json_to_clawbot(article, summary_limit)
+        for article in articles[:display_limit]
+    )
+    if len(articles) > display_limit:
+        lines.append(_more_line(len(articles) - display_limit))
+    return "\n\n".join(lines)
+
+
+def _build_clawbot_digest(
+    groups: list[tuple[str, list[dict[str, Any]]]],
+    display_limit: int,
+    summary_limit: int | None,
+) -> str:
+    """按给定压缩参数渲染 ClawBot 简报全文（含完整版入口）。
+
+    Args:
+        groups: ``(category, articles)`` 分组列表。
+        display_limit: 每个分类最多展示的文章数。
+        summary_limit: 每篇文章正文最大长度；None 表示不额外限制。
+
+    Returns:
+        含分组内容与 ``📖 完整简报`` 尾注的 MarkdownV2 文本。
+    """
+    parts = [
+        _render_category_clawbot(category, items, display_limit, summary_limit)
+        for category, items in groups
+    ]
+    footer = _escape_clawbot(
+        CLAWBOT_DIGEST_FOOTER_TEMPLATE.format(link=CLAWBOT_DIGEST_FOOTER_LINK)
+    )
+    return "\n\n".join(parts) + "\n\n" + footer
+
+
+def _shrink_clawbot_digest(
+    groups: list[tuple[str, list[dict[str, Any]]]],
+) -> str:
+    """压缩 ClawBot 简报至 :data:`CLAWBOT_DIGEST_MAX_LENGTH` 内。
+
+    依次尝试：先截断每篇文章正文，再逐档减少每个分类的展示篇数；
+    仍超限时做硬截断。
+
+    Args:
+        groups: ``(category, articles)`` 分组列表。
+
+    Returns:
+        长度不超过 :data:`CLAWBOT_DIGEST_MAX_LENGTH` 的 MarkdownV2 文本。
+    """
+    text = ""
+    for summary_limit in (None, CLAWBOT_DIGEST_BODY_LIMIT):
+        for display_limit in range(CATEGORY_LIMIT, 0, -1):
+            text = _build_clawbot_digest(groups, display_limit, summary_limit)
+            if len(text) <= CLAWBOT_DIGEST_MAX_LENGTH:
+                return text
+    return text[:CLAWBOT_DIGEST_MAX_LENGTH]
+
+
+def _render_category_feishu(
+    category: str, articles: list[dict[str, Any]]
+) -> list[dict[str, Any]]:
+    """渲染单个 category 分组的飞书卡片元素。
+
+    Args:
+        category: 分类名。
+        articles: 该分类下的文章列表（已按相关性降序）。
+
+    Returns:
+        含分类标签、文章块与 ``+N more`` 的元素列表。
+    """
+    elements: list[dict[str, Any]] = [
+        {
+            "tag": "div",
+            "text": {
+                "tag": "lark_md",
+                "content": f"**{_category_label(category, len(articles))}**",
+            },
+        }
+    ]
+    elements.extend(
+        _feishu_article_block(article) for article in articles[:CATEGORY_LIMIT]
+    )
+    if len(articles) > CATEGORY_LIMIT:
+        elements.append(
+            {
+                "tag": "div",
+                "text": {
+                    "tag": "lark_md",
+                    "content": _more_line(len(articles) - CATEGORY_LIMIT),
+                },
+            }
+        )
+    return elements
+
+
 def generate_daily_digest(
     knowledge_dir: str | Path = DEFAULT_KNOWLEDGE_DIR,
     date: str | None = None,
     top_n: int = DEFAULT_TOP_N,
 ) -> dict[str, Any] | str:
-    """生成指定日期的多平台知识简报（Top N 高相关性条目）。
+    """生成指定日期的多平台知识简报（按 category 分组）。
 
-    按 ``{date}-*.json`` 扫描知识条目目录，按相关性评分降序取前 N 条，
-    分别渲染为 Markdown / Telegram 文本与飞书卡片。当日无文章时返回空提示。
+    按 ``{date}-*.json`` 扫描知识条目目录，先按相关性评分降序取前 N 条，
+    再按 ``category`` 分组展示：组内按 ``relevance_score`` 降序，组间按文章数
+    降序；单个分组最多展示 :data:`CATEGORY_LIMIT` 篇，超出以 ``+N more`` 提示。
+    ClawBot 简报超出 :data:`CLAWBOT_DIGEST_MAX_LENGTH` 时，先截断各篇正文，
+    再逐档减少每类展示篇数，并在末尾追加 ``📖 完整简报`` 入口。
+    正文优先使用 ``key_insight``，缺失时回退到完整 ``summary``。
+    当日无文章时返回空提示。
 
     Args:
         knowledge_dir: 知识条目目录，默认 ``knowledge/articles``。
         date: 日期（``YYYY-MM-DD``）；None 时使用今天的 UTC 日期。
-        top_n: 按相关性评分降序取前 N 条，默认 5。
+        top_n: 先按相关性评分降序截取前 N 条，默认 5。
 
     Returns:
         当日无文章时返回 ``"📭 {date} 暂无新增知识条目"``；
-        否则返回 ``{"markdown": str, "telegram": str, "feishu": dict}`` 字典。
+        否则返回 ``{"markdown": str, "clawbot": str, "feishu": dict}`` 字典。
     """
     target = Path(knowledge_dir)
     if date is None:
@@ -346,10 +809,14 @@ def generate_daily_digest(
 
     articles.sort(key=_score, reverse=True)
     top = articles[:top_n]
+    groups = _group_by_category(top)
 
     return {
-        "markdown": "\n\n---\n\n".join(json_to_markdown(a) for a in top),
-        "telegram": "\n\n".join(json_to_telegram(a) for a in top),
+        "markdown": "\n\n".join(
+            _render_category_markdown(category, items)
+            for category, items in groups
+        ),
+        "clawbot": _shrink_clawbot_digest(groups),
         "feishu": {
             "msg_type": MSG_TYPE_INTERACTIVE,
             "card": {
@@ -361,7 +828,135 @@ def generate_daily_digest(
                     },
                     "template": TEMPLATE_DIGEST,
                 },
-                "elements": [_feishu_article_block(a) for a in top],
+                "elements": [
+                    element
+                    for category, items in groups
+                    for element in _render_category_feishu(category, items)
+                ],
             },
         },
+    }
+
+
+# ── 基于索引的轻量预览 ─────────────────────────────────────────────────────
+
+
+def _id_date(article_id: str) -> str:
+    """从条目 id 中提取日期（标准化为 ``YYYY-MM-DD``）。
+
+    兼容 ``2026-04-11-000``（日期带横杠）与 ``gh-20260720-003``
+    （日期为连续 8 位）两种 id 格式。
+
+    Args:
+        article_id: 条目 id 字符串。
+
+    Returns:
+        标准化日期（``YYYY-MM-DD``）；无法提取时返回空串。
+    """
+    match = INDEX_ID_DATE_PATTERN.search(article_id)
+    if not match:
+        return ""
+    return (
+        f"{match.group('year')}-{match.group('month')}-{match.group('day')}"
+    )
+
+
+def _preview_markdown(previews: list[dict[str, Any]]) -> str:
+    """渲染轻量预览的 Markdown 表格。
+
+    Args:
+        previews: 已按相关性降序的预览条目列表。
+
+    Returns:
+        ``| 标题 | 分类 | 相关性 |`` 表格文本。
+    """
+    lines = ["| 标题 | 分类 | 相关性 |", "|------|------|--------|"]
+    lines.extend(
+        f"| {item['title']} | {item['category']} | {item['relevance_score']:.2f} |"
+        for item in previews
+    )
+    return "\n".join(lines)
+
+
+def _preview_telegram(date: str, previews: list[dict[str, Any]]) -> str:
+    """渲染轻量预览的 ClawBot 纯文本列表。
+
+    Args:
+        date: 日期（``YYYY-MM-DD``）。
+        previews: 已按相关性降序的预览条目列表。
+
+    Returns:
+        ``📋 {date} Top {n}`` 开头、带相关性图标的编号列表文本。
+    """
+    lines = [f"📋 {date} Top {len(previews)}"]
+    for idx, item in enumerate(previews, start=1):
+        emoji, _ = _relevance_status(item["relevance_score"])
+        lines.append(
+            f"{idx}. {item['title']} [{item['category']}] "
+            f"{emoji}{item['relevance_score']:.2f}"
+        )
+    return "\n".join(lines)
+
+
+def digest_from_index(
+    knowledge_dir: str | Path = DEFAULT_KNOWLEDGE_DIR,
+    date: str | None = None,
+    top_n: int = DEFAULT_TOP_N,
+) -> dict[str, str] | str:
+    """基于 index.json 的轻量级知识预览（不读取单篇文章）。
+
+    只读取 ``knowledge/articles/index.json`` 索引，从条目 ``id`` 中提取日期
+    （兼容 ``gh-20260720-003`` 与 ``2026-04-11-000`` 两种格式）并按 ``date``
+    筛选，以 ``relevance_score`` 降序取前 N 条，渲染为 Markdown 表格与 ClawBot
+    纯文本列表。适合 Bot 快速响应"今天有什么新内容"，秒级返回。
+
+    Args:
+        knowledge_dir: 知识条目目录，默认 ``knowledge/articles``。
+        date: 日期（``YYYY-MM-DD``）；None 时使用今天的 UTC 日期。
+        top_n: 按相关性评分降序取前 N 条，默认 5。
+
+    Returns:
+        索引缺失/解析失败或筛选后无条目时返回 ``"📭 {date} 暂无新增知识条目"``；
+        否则返回 ``{"markdown": str, "telegram": str}`` 字典。
+    """
+    target = Path(knowledge_dir)
+    if date is None:
+        date = datetime.now(timezone.utc).strftime(DATE_FORMAT)
+
+    index_path = target / INDEX_FILENAME
+    if not index_path.exists():
+        return INDEX_MISSING_MESSAGE.format(path=index_path)
+
+    try:
+        index = json.loads(index_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return INDEX_INVALID_MESSAGE.format(path=index_path)
+
+    previews: list[dict[str, Any]] = []
+    for article in index.get("articles", []):
+        if not isinstance(article, dict):
+            continue
+        article_id = str(article.get("id", ""))
+        if _id_date(article_id) != date:
+            continue
+        previews.append(
+            {
+                "id": article_id,
+                "title": str(article.get("title", "")),
+                "category": str(
+                    article.get("category") or DEFAULT_CATEGORY_NAME
+                ),
+                "relevance_score": _score(article),
+            }
+        )
+
+    if not previews:
+        return EMPTY_DIGEST_MESSAGE.format(date=date)
+
+    previews.sort(key=lambda item: item["relevance_score"], reverse=True)
+    top = previews[:top_n]
+
+    return {
+        "markdown": _preview_markdown(top),
+        "telegram": _preview_telegram(date, top),
     }
