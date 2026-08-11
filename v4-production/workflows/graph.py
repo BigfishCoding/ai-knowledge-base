@@ -135,6 +135,10 @@ def build_graph() -> Any:
     return graph.compile()
 
 
+# 模块级 app，供 pipeline 等外部模块导入
+app = build_graph()
+
+
 # ── 流式执行辅助 ──────────────────────────────────────────────────────────
 
 

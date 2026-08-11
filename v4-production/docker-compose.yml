@@ -1,0 +1,39 @@
+services:
+  bot:
+    build: .
+    image: kb-v4:latest
+    container_name: kb-bot
+    profiles: ["manual"]       # 默认不启动，需手动 docker compose --profile bot up -d
+    restart: unless-stopped
+    command: ["python", "-m", "bot.telegram_bot"]
+    volumes:
+      - ./knowledge:/app/knowledge
+      - ./data:/app/data
+    env_file: [.env]
+    environment:
+      - TZ=Asia/Singapore
+      - PYTHONPATH=/app
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  pipeline:
+    build: .
+    image: kb-v4:latest
+    container_name: kb-pipeline
+    profiles: ["manual"]    # 关键 · compose up 不会启动这个 · 仅 docker compose run 用
+    command: ["python", "-m", "pipeline.pipeline"]
+    volumes:
+      - ./knowledge:/app/knowledge
+      - ./data:/app/data
+    env_file: [.env]
+    environment:
+      - TZ=Asia/Singapore
+      - PYTHONPATH=/app
+
+# OpenClaw 网关不进 compose
+# OpenClaw 是 npm 装的 Node CLI，跑在宿主机：
+#   openclaw daemon start
+# 它通过 ./knowledge 目录跟容器共享数据

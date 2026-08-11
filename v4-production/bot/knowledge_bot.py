@@ -395,6 +395,8 @@ class SubscriptionManager:
 
     def _load(self) -> None:
         """从 JSON 文件恢复订阅（解析失败时保持空状态）。"""
+        if not self._storage_path:
+            return
         try:
             data = json.loads(self._storage_path.read_text(encoding="utf-8"))
         except (OSError, json.JSONDecodeError):

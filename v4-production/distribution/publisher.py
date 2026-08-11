@@ -517,6 +517,9 @@ def _build_publishers() -> list[BasePublisher]:
     """
     publishers: list[BasePublisher] = []
     for publisher_cls in (TelegramPublisher, FeishuPublisher, OpenClawPublisher):
+        if publisher_cls is OpenClawPublisher and not os.environ.get(ENV_OPENCLAW_API_URL):
+            logger.warning("渠道 %s 未配置，跳过: 未设置 %s", publisher_cls.channel, ENV_OPENCLAW_API_URL)
+            continue
         try:
             publishers.append(publisher_cls())
         except ValueError as exc:

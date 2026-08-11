@@ -1,8 +1,11 @@
-# 运行时依赖（Python 3.12+）
-# 安装：pip install -r requirements.txt
+﻿
+aiohttp==3.14.1
+langchain-openai==1.2.2
+langgraph==1.2.6
+langgraph-checkpoint==4.1.1
+langgraph-prebuilt==1.1.0
+langgraph-sdk==0.4.2
+openai==2.40.0
+python-dotenv==1.2.2
 
-aiohttp>=3.9
-httpx>=0.27
-langgraph>=0.2
-openai>=1.40
-python-dotenv>=1.0
+
