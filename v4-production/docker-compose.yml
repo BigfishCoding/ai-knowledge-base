@@ -4,7 +4,7 @@ services:
     image: kb-v4:latest
     container_name: kb-bot
     profiles: ["manual"]       # 默认不启动，需手动 docker compose --profile bot up -d
-    restart: unless-stopped
+    restart: on-failure:3
     command: ["python", "-m", "bot.telegram_bot"]
     volumes:
       - ./knowledge:/app/knowledge
