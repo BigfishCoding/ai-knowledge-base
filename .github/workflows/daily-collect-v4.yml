@@ -42,6 +42,8 @@ jobs:
           LLM_MODEL: deepseek-chat
           LLM_BASE_URL: https://api.deepseek.com/v1
           BUDGET_YUAN: 1.0
+          BUDGET_DAILY_YUAN: 3.0
+          MAX_LLM_CALLS: 50
           FEISHU_WEBHOOK_URL: ${{ secrets.FEISHU_WEBHOOK_URL }}
           PYTHONPATH: ${{ github.workspace }}/v4-production
 

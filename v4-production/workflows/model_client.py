@@ -14,6 +14,8 @@
 - ``LLM_BASE_URL``: Base URL，默认 DeepSeek 官方地址
 - ``LLM_MODEL``: 模型名，默认 ``deepseek-chat``
 - ``BUDGET_YUAN``: 单次流水线运行的总预算（元），默认 1.0
+- ``BUDGET_DAILY_YUAN``: 日预算（元），跨日期自动重置，默认 3.0
+- ``MAX_LLM_CALLS``: 单次运行 LLM 调用次数熔断上限，默认 50
 """
 
 import json
@@ -41,12 +43,16 @@ logger = logging.getLogger(__name__)
 DEFAULT_BASE_URL = "https://api.deepseek.com/v1"
 DEFAULT_MODEL = "deepseek-chat"
 DEFAULT_BUDGET_YUAN = 1.0
+DEFAULT_DAILY_BUDGET_YUAN = 3.0
+DEFAULT_MAX_CALLS = 50
 DEFAULT_NODE_NAME = "unknown"
 
 ENV_API_KEY = "LLM_API_KEY"
 ENV_BASE_URL = "LLM_BASE_URL"
 ENV_MODEL = "LLM_MODEL"
 ENV_BUDGET_YUAN = "BUDGET_YUAN"
+ENV_DAILY_BUDGET_YUAN = "BUDGET_DAILY_YUAN"
+ENV_MAX_CALLS = "MAX_LLM_CALLS"
 
 JSON_FENCE_PATTERN = re.compile(r"^```(?:json)?\s*|\s*```$")
 
@@ -119,25 +125,43 @@ def _model() -> str:
 def get_cost_guard() -> CostGuard:
     """获取全局成本守卫单例（懒加载）。
 
-    首次调用时依据 ``BUDGET_YUAN`` 环境变量创建（默认 1.0 元），
-    后续调用复用同一实例。预算读取失败（环境变量非数值）时回退默认值。
+    首次调用时依据环境变量创建（默认单次预算 1.0 元、日预算 3.0 元、
+    熔断上限 50 次），后续调用复用同一实例。预算读取失败（环境变量非
+    数值）时回退默认值。
 
     Returns:
         全局复用的 CostGuard 实例。
     """
     global _cost_guard
     if _cost_guard is None:
+
+        def _read_float(env: str, default: float) -> float:
+            try:
+                return float(os.environ.get(env, default))
+            except ValueError:
+                logger.warning(
+                    "%s 环境变量非数值，回退默认 %.2f", env, default
+                )
+                return default
+
+        budget = _read_float(ENV_BUDGET_YUAN, DEFAULT_BUDGET_YUAN)
+        daily_budget = _read_float(ENV_DAILY_BUDGET_YUAN, DEFAULT_DAILY_BUDGET_YUAN)
         try:
-            budget = float(os.environ.get(ENV_BUDGET_YUAN, DEFAULT_BUDGET_YUAN))
+            max_calls = int(os.environ.get(ENV_MAX_CALLS, DEFAULT_MAX_CALLS))
         except ValueError:
-            logger.warning(
-                "%s 环境变量非数值，回退默认预算 %.2f 元",
-                ENV_BUDGET_YUAN,
-                DEFAULT_BUDGET_YUAN,
-            )
-            budget = DEFAULT_BUDGET_YUAN
-        _cost_guard = CostGuard(budget_yuan=budget)
-        logger.info("[cost_guard] 全局预算 %.2f 元已生效", budget)
+            logger.warning("%s 环境变量非整数，回退默认 %d", ENV_MAX_CALLS, DEFAULT_MAX_CALLS)
+            max_calls = DEFAULT_MAX_CALLS
+        _cost_guard = CostGuard(
+            budget_yuan=budget,
+            daily_budget_yuan=daily_budget,
+            max_calls=max_calls,
+        )
+        logger.info(
+            "[cost_guard] 单次预算 %.2f 元 / 日预算 %.2f 元 / 熔断上限 %d 次已生效",
+            budget,
+            daily_budget,
+            max_calls,
+        )
     return _cost_guard
 
 
