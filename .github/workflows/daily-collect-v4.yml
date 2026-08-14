@@ -1,8 +1,7 @@
 # V4 每日自动采集流水线
 # fork 后需在 Settings → Secrets and variables → Actions 中配置：
-#   DEEPSEEK_API_KEY  (必填，对应 .env 的 LLM_API_KEY)
-#   TELEGRAM_BOT_TOKEN (可选，推送通知)
-#   TELEGRAM_CHAT_ID   (可选，推送通知)
+#   DEEPSEEK_API_KEY    (必填，对应 .env 的 LLM_API_KEY)
+#   FEISHU_WEBHOOK_URL  (可选，飞书推送通知)
 #
 # 触发方式：
 #   - 每天 UTC 0:00（北京时间 08:00）自动运行
@@ -43,8 +42,7 @@ jobs:
           LLM_MODEL: deepseek-chat
           LLM_BASE_URL: https://api.deepseek.com/v1
           BUDGET_YUAN: 1.0
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          FEISHU_WEBHOOK_URL: ${{ secrets.FEISHU_WEBHOOK_URL }}
           PYTHONPATH: ${{ github.workspace }}/v4-production
 
       - name: 上传采集产物
